@@ -1,0 +1,34 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --color-neon: #D9FF00;
+  --color-ink: #000000;
+  --color-paper: #FFFFFF;
+  --color-muted: #F2F2F2;
+}
+
+@layer base {
+  body {
+    @apply bg-paper text-ink font-sans;
+  }
+}
+
+@layer components {
+  .bold-border {
+    @apply border-4 border-ink;
+  }
+  
+  .bold-shadow {
+    @apply shadow-[8px_8px_0px_theme(colors.ink)];
+  }
+
+  .bold-button {
+    @apply bg-neon border-4 border-ink px-6 py-3 font-black uppercase tracking-tighter text-xl transition-all active:translate-x-1 active:translate-y-1 active:shadow-none shadow-[8px_8px_0px_theme(colors.ink)];
+  }
+
+  .rail-text {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+  }
+}

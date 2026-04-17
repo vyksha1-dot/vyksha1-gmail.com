@@ -1,0 +1,54 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile information and role.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "role": { "type": "string", "enum": ["customer", "technician", "admin"] },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["uid", "email", "role", "createdAt"]
+    },
+    "PotholeReport": {
+      "title": "PotholeReport",
+      "description": "A report of a pothole including location and image.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "location": {
+          "type": "object",
+          "properties": {
+            "latitude": { "type": "number" },
+            "longitude": { "type": "number" },
+            "address": { "type": "string" }
+          },
+          "required": ["latitude", "longitude"]
+        },
+        "status": { "type": "string", "enum": ["pending", "in-progress", "repaired"] },
+        "paymentStatus": { "type": "string", "enum": ["unpaid", "paid"] },
+        "price": { "type": "number" },
+        "severity": { "type": "string", "enum": ["low", "medium", "high"] },
+        "description": { "type": "string" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["id", "userId", "imageUrl", "location", "status", "severity", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profiles"
+    },
+    "/reports/{reportId}": {
+      "schema": "PotholeReport",
+      "description": "Pothole reports"
+    }
+  }
+}

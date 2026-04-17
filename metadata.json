@@ -1,0 +1,13 @@
+{
+  "name": "1 Hour Pothole Repair",
+  "description": "Professional pothole repair in 60 minutes or less. Fast, reliable, and on-demand road maintenance.",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "camera",
+    "geolocation",
+    "maps"
+  ]
+}
