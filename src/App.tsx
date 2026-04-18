@@ -20,6 +20,7 @@ import {
 import { loadStripe } from '@stripe/stripe-js';
 import { MapContainer, TileLayer, Marker, Popup, useMap, LayersControl } from 'react-leaflet';
 import { QRCodeSVG } from 'qrcode.react';
+import { GoogleGenAI, Type } from "@google/genai";
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { PotholeReport, UserProfile } from './types';
@@ -35,6 +36,10 @@ L.Icon.Default.mergeOptions({
   iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
   shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
 });
+
+// Initialize Gemini
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const gModel = "gemini-3-flash-preview";
 
 const STATUS_COLORS = {
   pending: 'bg-yellow-400 text-ink border-ink',
@@ -394,6 +399,7 @@ export default function App() {
   
   // Report Form State
   const [isReporting, setIsReporting] = useState(false);
+  const [isValidatingImage, setIsValidatingImage] = useState(false);
   const [reportImage, setReportImage] = useState<string | null>(null);
   const [reportLocation, setReportLocation] = useState<{lat: number, lng: number} | null>(null);
   const [reportAddress, setReportAddress] = useState('');
@@ -551,9 +557,55 @@ export default function App() {
   const handleCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setIsValidatingImage(true);
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setReportImage(reader.result as string);
+      reader.onloadend = async () => {
+        const base64Data = (reader.result as string).split(',')[1];
+        
+        try {
+          // AI Validation
+          const response = await ai.models.generateContent({
+            model: gModel,
+            contents: {
+              parts: [
+                {
+                  inlineData: {
+                    data: base64Data,
+                    mimeType: file.type
+                  }
+                },
+                {
+                  text: "Analyze this image. Is it a picture of a pothole or road damage? Answer in JSON with a boolean 'isPothole' and a short 'explanation'. Only allow real potholes on roads."
+                }
+              ]
+            },
+            config: {
+              responseMimeType: "application/json",
+              responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                  isPothole: { type: Type.BOOLEAN },
+                  explanation: { type: Type.STRING }
+                },
+                required: ["isPothole", "explanation"]
+              }
+            }
+          });
+
+          const result = JSON.parse(response.text);
+          if (result.isPothole) {
+            setReportImage(reader.result as string);
+          } else {
+            alert(`INVALID IMAGE: ${result.explanation}`);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+          }
+        } catch (error) {
+          console.error("AI Validation error:", error);
+          // Fallback: allow if AI fails (could be transient error)
+          setReportImage(reader.result as string);
+        } finally {
+          setIsValidatingImage(false);
+        }
       };
       reader.readAsDataURL(file);
 
@@ -989,7 +1041,12 @@ export default function App() {
                       reportImage ? "border-ink" : "border-muted hover:border-ink bg-muted"
                     )}
                   >
-                    {reportImage ? (
+                    {isValidatingImage ? (
+                      <div className="flex flex-col items-center gap-4 p-8">
+                        <div className="w-12 h-12 border-4 border-ink/30 border-t-neon rounded-full animate-spin" />
+                        <p className="font-black uppercase text-[10px] animate-pulse">AI VALIDATING POTHOLE...</p>
+                      </div>
+                    ) : reportImage ? (
                       <>
                         <img src={reportImage} className="w-full h-full object-cover" alt="Preview" />
                         <div className="absolute inset-0 bg-ink/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
