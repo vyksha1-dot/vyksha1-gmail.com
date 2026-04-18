@@ -47,6 +47,13 @@ If your domain shows an error or doesn't load:
 #### Full-Stack Routing on Vercel
 Vercel is great for static sites, but this app has a server. If your API routes return 404, ensure you have added a `vercel.json` file (provided in this repo) to tell Vercel to route traffic to the server.
 
+#### Payment Persistence Checklist (Stripe)
+If clicking "Confirm Repair" doesn't take you to the Stripe payment screen:
+1. **Environment Variables**: Go to Vercel Settings > Environment Variables. You MUST add `STRIPE_SECRET_KEY` with your secret key from Stripe (`sk_live_...`).
+2. **APP_URL**: Add an environment variable `APP_URL` set to `https://1hourpotholerepair.com`. This tells Stripe where to send the user after they pay.
+3. **Redeploy**: If you just added the `vercel.json` file, you MUST go to the "Deployments" tab in Vercel and click **Redeploy** on the latest build to activate the new routing rules.
+4. **Browser Console**: Right-click the page, select "Inspect", and go to the "Console" tab. If you see an error like "Stripe not configured", it confirms Step 1 is missing.
+
 #### If you want to host the files on GoDaddy (Advanced):
 *Note: You must have a "Web Hosting" (cPanel) plan that supports Node.js.*
 1. Log in to your **GoDaddy cPanel**.

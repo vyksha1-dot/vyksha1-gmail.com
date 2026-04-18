@@ -28,7 +28,11 @@ app.use(express.json());
 
 // API Routes
 app.get("/api/health", (req, res) => {
-  res.json({ status: "ok" });
+  res.json({ 
+    status: "ok", 
+    stripeConfigured: !!process.env.STRIPE_SECRET_KEY,
+    environment: process.env.NODE_ENV
+  });
 });
 
 app.post("/api/create-checkout-session", async (req, res) => {

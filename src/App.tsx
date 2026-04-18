@@ -520,15 +520,29 @@ export default function App() {
         }),
       });
 
-      const { url, error } = await response.json();
-      if (error) throw new Error(error);
+      if (!response.ok) {
+        const text = await response.text();
+        let serverError = "Server check failed";
+        try {
+          const parsed = JSON.parse(text);
+          serverError = parsed.error || serverError;
+        } catch (e) {
+          if (response.status === 404) {
+            serverError = "API not found. Ensure you exported the latest code with vercel.json.";
+          }
+        }
+        throw new Error(serverError);
+      }
 
+      const { url } = await response.json();
       if (url) {
         window.location.href = url;
+      } else {
+        throw new Error("No checkout URL received from server");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Payment failed:", error);
-      alert("Payment initiation failed. Please try again.");
+      alert(`Payment Error: ${error.message || "Failed to initiate checkout"}`);
     } finally {
       setIsPaying(false);
     }
