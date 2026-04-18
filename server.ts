@@ -10,67 +10,73 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-async function startServer() {
-  const app = express();
-  const PORT = 3000;
+export const app = express();
 
+export default app;
+
+const getStripe = () => {
   let stripe: Stripe | null = null;
-  const getStripe = () => {
-    if (!stripe) {
-      const key = process.env.STRIPE_SECRET_KEY;
-      if (!key) {
-        throw new Error("STRIPE_SECRET_KEY is not configured in environment variables.");
-      }
-      stripe = new Stripe(key);
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) {
+    console.error("STRIPE_SECRET_KEY is not configured. Payments will fail.");
+    return null;
+  }
+  return new Stripe(key);
+};
+
+app.use(express.json());
+
+// API Routes
+app.get("/api/health", (req, res) => {
+  res.json({ status: "ok" });
+});
+
+app.post("/api/create-checkout-session", async (req, res) => {
+  try {
+    const { reportId, price, userEmail } = req.body;
+    const stripeClient = getStripe();
+    
+    if (!stripeClient) {
+      return res.status(500).json({ error: "Stripe not configured" });
     }
-    return stripe;
-  };
 
-  app.use(express.json());
+    if (!reportId || !price || !userEmail) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
 
-  // API Routes
-  app.get("/api/health", (req, res) => {
-    res.json({ status: "ok" });
-  });
-
-  app.post("/api/create-checkout-session", async (req, res) => {
-    try {
-      const { reportId, price, userEmail } = req.body;
-
-      if (!reportId || !price || !userEmail) {
-        return res.status(400).json({ error: "Missing required fields" });
-      }
-
-      const session = await getStripe().checkout.sessions.create({
-        payment_method_types: ["card"],
-        line_items: [
-          {
-            price_data: {
-              currency: "usd",
-              product_data: {
-                name: `Pothole Repair - Ticket #${reportId.slice(0, 8)}`,
-                description: "1-Hour Rapid Pavement Repair Service",
-              },
-              unit_amount: price * 100, // Stripe expects cents
+    const session = await stripeClient.checkout.sessions.create({
+      payment_method_types: ["card"],
+      line_items: [
+        {
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: `Pothole Repair - Ticket #${reportId.slice(0, 8)}`,
+              description: "1-Hour Rapid Pavement Repair Service",
             },
-            quantity: 1,
+            unit_amount: price * 100, // Stripe expects cents
           },
-        ],
-        mode: "payment",
-        customer_email: userEmail,
-        success_url: `${process.env.APP_URL || 'http://localhost:3000'}/?payment=success&reportId=${reportId}`,
-        cancel_url: `${process.env.APP_URL || 'http://localhost:3000'}/?payment=cancel&reportId=${reportId}`,
-        metadata: {
-          reportId: reportId,
+          quantity: 1,
         },
-      });
+      ],
+      mode: "payment",
+      customer_email: userEmail,
+      success_url: `${process.env.APP_URL || 'http://localhost:3000'}/?payment=success&reportId=${reportId}`,
+      cancel_url: `${process.env.APP_URL || 'http://localhost:3000'}/?payment=cancel&reportId=${reportId}`,
+      metadata: {
+        reportId: reportId,
+      },
+    });
 
-      res.json({ id: session.id, url: session.url });
-    } catch (error: any) {
-      console.error("Stripe Error:", error);
-      res.status(500).json({ error: error.message });
-    }
-  });
+    res.json({ id: session.id, url: session.url });
+  } catch (error: any) {
+    console.error("Stripe Error:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+async function startServer() {
+  const PORT = 3000;
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
@@ -87,9 +93,12 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-  });
+  // Only listen if this is the main module (not on Vercel)
+  if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+    });
+  }
 }
 
 startServer();
