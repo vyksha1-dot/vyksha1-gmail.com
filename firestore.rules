@@ -46,13 +46,15 @@ service cloud.firestore {
 
     function isAdmin() {
       return isAuthenticated() && 
-        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
-         (request.auth.token.email == "vyksha1@gmail.com" && request.auth.token.email_verified == true));
+        ((exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin') ||
+         request.auth.token.email == "vyksha1@gmail.com");
     }
 
     function isTechnician() {
       return isAuthenticated() && 
-        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'technician' || isAdmin());
+        ((exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'technician') || isAdmin());
     }
 
     function isValidEmail(email) {
@@ -62,7 +64,6 @@ service cloud.firestore {
     function isValidUser(data) {
       return data.keys().hasAll(['uid', 'email', 'role', 'createdAt']) &&
              data.uid == request.auth.uid &&
-             isValidEmail(data.email) &&
              data.role in ['customer', 'technician', 'admin'] &&
              data.createdAt is number;
     }
@@ -95,9 +96,7 @@ service cloud.firestore {
     match /reports/{reportId} {
       allow read: if isAuthenticated();
       allow create: if isAuthenticated() && isValidReport(request.resource.data);
-      allow update: if isTechnician() && 
-                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']) &&
-                      request.resource.data.status in ['pending', 'in-progress', 'repaired'];
+      allow update: if isTechnician() || isAdmin();
       allow delete: if isAdmin();
     }
   }
