@@ -140,7 +140,7 @@ function LandingPage({ onLogin, isLoading }: { onLogin: () => void, isLoading: b
           <div className="bg-neon p-2 border-2 border-ink">
             <Clock className="w-6 h-6" />
           </div>
-          <span className="font-black text-2xl uppercase tracking-tighter">1HR REPAIR</span>
+          <span className="font-black text-2xl uppercase tracking-tighter">QUICK FIX</span>
         </div>
         <div className="flex gap-8 items-center">
           <button 
@@ -178,9 +178,9 @@ function LandingPage({ onLogin, isLoading }: { onLogin: () => void, isLoading: b
 
         <div className="relative z-10 space-y-12">
           <h1 className="text-[clamp(6rem,18vw,24rem)] leading-[0.78] font-black tracking-[-0.04em] uppercase">
-            1 Hour<br />
-            <span className="text-neon bg-ink pr-8">Repair.</span><br />
-            Period.
+            Quick Fix<br />
+            <span className="text-neon bg-ink pr-8">Pothole.</span><br />
+            Done.
           </h1>
           
           <div className="flex flex-col md:flex-row gap-12 items-start md:items-end justify-between">
@@ -734,7 +734,7 @@ export default function App() {
           {/* Header */}
           <header className="p-12 pb-6">
             <h1 className="text-[120px] leading-[0.85] font-black tracking-[-6px] uppercase">
-              1 HOUR<br />REPAIR
+              QUICK FIX<br />POTHOLE
             </h1>
           </header>
 
@@ -1187,7 +1187,7 @@ export default function App() {
                     {isReporting ? (
                       <div className="w-6 h-6 border-4 border-ink/30 border-t-ink rounded-full animate-spin" />
                     ) : (
-                      <>CONFIRM 1-HOUR REPAIR</>
+                      <>CONFIRM QUICK FIX</>
                     )}
                   </button>
                 </div>

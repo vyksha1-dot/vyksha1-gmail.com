@@ -1,6 +1,6 @@
 {
-  "name": "1 Hour Pothole Repair",
-  "description": "Professional pothole repair in 60 minutes or less. Fast, reliable, and on-demand road maintenance.",
+  "name": "Quick Fix Pothole",
+  "description": "Professional high-speed pothole repair. Snap a photo for an instant AI-measured quote and elite 60-minute dispatch.",
   "requestFramePermissions": [
     "camera",
     "geolocation"
