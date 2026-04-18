@@ -11,11 +11,11 @@ import {
   signInWithPopup, GoogleAuthProvider, onAuthStateChanged, User 
 } from 'firebase/auth';
 import { 
-  collection, doc, setDoc, getDoc, onSnapshot, query, orderBy, updateDoc, serverTimestamp, getDocFromServer
+  collection, doc, setDoc, getDoc, onSnapshot, query, orderBy, updateDoc, deleteDoc, serverTimestamp, getDocFromServer
 } from 'firebase/firestore';
 import { 
   Camera, MapPin, AlertTriangle, CheckCircle, Clock, LogOut, User as UserIcon, 
-  Map as MapIcon, Plus, X, ChevronRight, Info, CreditCard
+  Map as MapIcon, Plus, X, ChevronRight, Info, CreditCard, Trash2
 } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
 import { MapContainer, TileLayer, Marker, Popup, useMap, LayersControl } from 'react-leaflet';
@@ -628,6 +628,21 @@ export default function App() {
       setSelectedReport(prev => prev ? { ...prev, paymentStatus: newStatus } : null);
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `reports/${reportId}`);
+    }
+  };
+
+  const deleteReport = async (reportId: string) => {
+    if (profile?.role !== 'admin') return;
+    
+    if (!window.confirm("Are you sure you want to PERMANENTLY delete this repair ticket? This cannot be undone.")) {
+      return;
+    }
+
+    try {
+      await deleteDoc(doc(db, 'reports', reportId));
+      setSelectedReport(null);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, `reports/${reportId}`);
     }
   };
 
@@ -1281,6 +1296,22 @@ export default function App() {
                                 </button>
                               ))}
                             </div>
+                          </div>
+                        )}
+
+                        {profile?.role === 'admin' && (
+                          <div className="pt-6 border-t-2 border-ink border-dashed">
+                            <label className="text-[10px] font-black uppercase tracking-widest mb-4 block text-red-600 uppercase">Danger Zone</label>
+                            <button
+                              onClick={() => deleteReport(selectedReport.id)}
+                              className="w-full px-4 py-3 font-black uppercase tracking-tighter border-4 border-ink bg-paper text-red-600 hover:bg-red-100 transition-all flex items-center justify-center gap-2 bold-shadow active:translate-y-1"
+                            >
+                              <Trash2 className="w-6 h-6" />
+                              Delete This Work
+                            </button>
+                            <p className="text-[8px] font-bold text-red-600/70 uppercase text-center mt-3">
+                              Warning: This action is permanent and cannot be undone.
+                            </p>
                           </div>
                         )}
                       </div>
