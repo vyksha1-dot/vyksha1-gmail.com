@@ -14,6 +14,11 @@ export interface PotholeReport {
   createdAt: number;
   description?: string;
   severity: 'low' | 'medium' | 'high';
+  measurements?: {
+    widthInches: number;
+    lengthInches: number;
+    depthInches: number;
+  };
 }
 
 export interface UserProfile {

@@ -405,6 +405,7 @@ export default function App() {
   const [reportAddress, setReportAddress] = useState('');
   const [reportSeverity, setReportSeverity] = useState<'low' | 'medium' | 'high'>('medium');
   const [reportDescription, setReportDescription] = useState('');
+  const [reportMeasurements, setReportMeasurements] = useState<PotholeReport['measurements'] | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -575,7 +576,7 @@ export default function App() {
                   }
                 },
                 {
-                  text: "Analyze this image. Is it a picture of a pothole or road damage? Answer in JSON with a boolean 'isPothole' and a short 'explanation'. Only allow real potholes on roads."
+                  text: "Analyze this image. Is it a picture of a pothole or road damage? If yes, estimate its measurements in inches (width, length, depth). Answer in JSON with a boolean 'isPothole', a short 'explanation', and 'measurements' object containing 'widthInches', 'lengthInches', and 'depthInches'. Only allow real potholes on roads."
                 }
               ]
             },
@@ -585,7 +586,16 @@ export default function App() {
                 type: Type.OBJECT,
                 properties: {
                   isPothole: { type: Type.BOOLEAN },
-                  explanation: { type: Type.STRING }
+                  explanation: { type: Type.STRING },
+                  measurements: {
+                    type: Type.OBJECT,
+                    properties: {
+                      widthInches: { type: Type.NUMBER },
+                      lengthInches: { type: Type.NUMBER },
+                      depthInches: { type: Type.NUMBER }
+                    },
+                    required: ["widthInches", "lengthInches", "depthInches"]
+                  }
                 },
                 required: ["isPothole", "explanation"]
               }
@@ -595,6 +605,7 @@ export default function App() {
           const result = JSON.parse(response.text);
           if (result.isPothole) {
             setReportImage(reader.result as string);
+            setReportMeasurements(result.measurements);
           } else {
             alert(`INVALID IMAGE: ${result.explanation}`);
             if (fileInputRef.current) fileInputRef.current.value = '';
@@ -643,6 +654,7 @@ export default function App() {
       price: finalPrice,
       severity: reportSeverity,
       description: reportDescription,
+      measurements: reportMeasurements || undefined,
       createdAt: Date.now(),
     };
 
@@ -654,6 +666,7 @@ export default function App() {
       setReportAddress('');
       setReportDescription('');
       setReportSeverity('medium');
+      setReportMeasurements(null);
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, 'reports');
     } finally {
@@ -1098,24 +1111,46 @@ export default function App() {
                   </div>
 
                   {/* Severity */}
-                  <div>
-                    <label className="text-[10px] font-black uppercase tracking-widest mb-2 block">Severity</label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {(['low', 'medium', 'high'] as const).map(s => (
-                        <button
-                          key={s}
-                          onClick={() => setReportSeverity(s)}
-                          className={cn(
-                            "py-3 font-black uppercase text-xs border-4 transition-all",
-                            reportSeverity === s 
-                              ? "bg-neon border-ink bold-shadow -translate-x-1 -translate-y-1" 
-                              : "bg-paper border-muted text-ink hover:border-ink"
-                          )}
-                        >
-                          {s}
-                        </button>
-                      ))}
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-[10px] font-black uppercase tracking-widest mb-2 block">Severity</label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {(['low', 'medium', 'high'] as const).map(s => (
+                          <button
+                            key={s}
+                            onClick={() => setReportSeverity(s)}
+                            className={cn(
+                              "py-3 font-black uppercase text-xs border-4 transition-all",
+                              reportSeverity === s 
+                                ? "bg-neon border-ink bold-shadow -translate-x-1 -translate-y-1" 
+                                : "bg-paper border-muted text-ink hover:border-ink"
+                            )}
+                          >
+                            {s}
+                          </button>
+                        ))}
+                      </div>
                     </div>
+
+                    {reportMeasurements && (
+                      <div className="bg-paper border-4 border-ink p-4 bold-shadow">
+                        <label className="text-[10px] font-black uppercase tracking-widest mb-2 block opacity-50 uppercase">AI Estimated Measurements</label>
+                        <div className="grid grid-cols-3 gap-2">
+                          <div className="text-center p-2 bg-muted border-2 border-ink">
+                            <p className="text-[8px] font-black uppercase opacity-60">Width</p>
+                            <p className="text-lg font-black tracking-tighter">{reportMeasurements.widthInches}"</p>
+                          </div>
+                          <div className="text-center p-2 bg-muted border-2 border-ink">
+                            <p className="text-[8px] font-black uppercase opacity-60">Length</p>
+                            <p className="text-lg font-black tracking-tighter">{reportMeasurements.lengthInches}"</p>
+                          </div>
+                          <div className="text-center p-2 bg-muted border-2 border-ink">
+                            <p className="text-[8px] font-black uppercase opacity-60">Depth</p>
+                            <p className="text-lg font-black tracking-tighter">{reportMeasurements.depthInches}"</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Description */}
@@ -1266,6 +1301,26 @@ export default function App() {
                         </p>
                       </div>
                     </div>
+
+                    {selectedReport.measurements && (
+                      <div className="bg-paper border-4 border-ink p-4 bold-shadow">
+                        <label className="text-[10px] font-black uppercase tracking-widest mb-4 block opacity-50">AI Structural Analysis (Estimated)</label>
+                        <div className="grid grid-cols-3 gap-4">
+                          <div className="text-center p-3 bg-muted border-2 border-ink">
+                            <p className="text-[9px] font-black uppercase opacity-60">Width</p>
+                            <p className="text-2xl font-black">{selectedReport.measurements.widthInches}<span className="text-xs ml-0.5">IN</span></p>
+                          </div>
+                          <div className="text-center p-3 bg-muted border-2 border-ink">
+                            <p className="text-[9px] font-black uppercase opacity-60">Length</p>
+                            <p className="text-2xl font-black">{selectedReport.measurements.lengthInches}<span className="text-xs ml-0.5">IN</span></p>
+                          </div>
+                          <div className="text-center p-3 bg-muted border-2 border-ink">
+                            <p className="text-[9px] font-black uppercase opacity-60">Depth</p>
+                            <p className="text-2xl font-black text-red-600">{selectedReport.measurements.depthInches}<span className="text-xs ml-0.5">IN</span></p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Customer Payment Action */}
                     {profile?.role === 'customer' && selectedReport.paymentStatus === 'unpaid' && (
