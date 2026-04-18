@@ -609,8 +609,11 @@ export default function App() {
     }
   };
 
+  const isTechnician = profile?.role === 'technician' || profile?.role === 'admin' || user?.email === 'vyksha1@gmail.com';
+  const isAdmin = profile?.role === 'admin' || user?.email === 'vyksha1@gmail.com';
+
   const updateStatus = async (reportId: string, newStatus: PotholeReport['status']) => {
-    if (profile?.role !== 'technician' && profile?.role !== 'admin') return;
+    if (!isTechnician) return;
     
     try {
       await updateDoc(doc(db, 'reports', reportId), { status: newStatus });
@@ -621,7 +624,7 @@ export default function App() {
   };
 
   const updatePaymentStatus = async (reportId: string, newStatus: PotholeReport['paymentStatus']) => {
-    if (profile?.role !== 'admin') return;
+    if (!isAdmin) return;
     
     try {
       await updateDoc(doc(db, 'reports', reportId), { paymentStatus: newStatus });
@@ -632,7 +635,7 @@ export default function App() {
   };
 
   const deleteReport = async (reportId: string) => {
-    if (profile?.role !== 'admin') return;
+    if (!isAdmin) return;
     
     if (!window.confirm("Are you sure you want to PERMANENTLY delete this repair ticket? This cannot be undone.")) {
       return;
@@ -691,7 +694,7 @@ export default function App() {
               >
                 List
               </button>
-              {(profile?.role === 'city-worker' || profile?.role === 'admin') && (
+              {isAdmin && (
                 <button 
                   onClick={() => setView('admin')}
                   className={cn(
@@ -699,7 +702,7 @@ export default function App() {
                     view === 'admin' ? "bg-neon bold-shadow" : "bg-paper hover:bg-muted"
                   )}
                 >
-                  Admin
+                  Admin Portal
                 </button>
               )}
               <div className="ml-auto flex items-center gap-4">
@@ -1255,7 +1258,7 @@ export default function App() {
                     )}
 
                     {/* Admin/Worker Controls */}
-                    {(profile?.role === 'technician' || profile?.role === 'admin') && (
+                    {isTechnician && (
                       <div className="pt-6 border-t-2 border-ink space-y-6">
                         <div>
                           <label className="text-[10px] font-black uppercase tracking-widest mb-4 block opacity-50">Job Status</label>
@@ -1277,7 +1280,7 @@ export default function App() {
                           </div>
                         </div>
 
-                        {profile?.role === 'admin' && (
+                        {isAdmin && (
                           <div>
                             <label className="text-[10px] font-black uppercase tracking-widest mb-4 block opacity-50">Payment Status</label>
                             <div className="grid grid-cols-2 gap-2">
@@ -1299,7 +1302,7 @@ export default function App() {
                           </div>
                         )}
 
-                        {profile?.role === 'admin' && (
+                        {isAdmin && (
                           <div className="pt-6 border-t-2 border-ink border-dashed">
                             <label className="text-[10px] font-black uppercase tracking-widest mb-4 block text-red-600 uppercase">Danger Zone</label>
                             <button
