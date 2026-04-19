@@ -79,6 +79,9 @@ app.post("/api/create-checkout-session", async (req, res) => {
   }
 });
 
+// Only listen if this is the main module (not on Vercel)
+const isMain = process.env.NODE_ENV !== "production" || !process.env.VERCEL;
+
 async function startServer() {
   const PORT = 3000;
 
@@ -89,7 +92,8 @@ async function startServer() {
       appType: "spa",
     });
     app.use(vite.middlewares);
-  } else {
+  } else if (isMain) {
+    // Only serve static files via Express if we are running the standalone server
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
     app.get("*", (req, res) => {
@@ -97,12 +101,13 @@ async function startServer() {
     });
   }
 
-  // Only listen if this is the main module (not on Vercel)
-  if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
+  if (isMain) {
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`Server running on http://localhost:${PORT}`);
     });
   }
 }
 
-startServer();
+if (isMain) {
+  startServer();
+}
