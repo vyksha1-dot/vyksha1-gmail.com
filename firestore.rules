@@ -69,16 +69,21 @@ service cloud.firestore {
     }
 
     function isValidReport(data) {
-      return data.keys().hasAll(['id', 'userId', 'imageUrl', 'location', 'status', 'severity', 'createdAt']) &&
+      return data.keys().hasAll(['id', 'reporterName', 'reporterPhone', 'reporterEmail', 'imageUrl', 'location', 'status', 'severity', 'createdAt', 'paymentStatus']) &&
              data.id is string &&
-             data.userId == request.auth.uid &&
+             data.id.size() < 100 &&
+             data.reporterName is string &&
+             data.reporterName.size() < 200 &&
+             data.reporterPhone is string &&
+             data.reporterEmail is string &&
              data.imageUrl is string &&
              data.location is map &&
              data.location.latitude is number &&
              data.location.longitude is number &&
              data.status in ['pending', 'in-progress', 'repaired'] &&
              data.severity in ['low', 'medium', 'high'] &&
-             data.createdAt is number;
+             data.createdAt is number &&
+             data.paymentStatus in ['unpaid', 'paid'];
     }
 
     // ===============================================================
@@ -94,9 +99,10 @@ service cloud.firestore {
     }
 
     match /reports/{reportId} {
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated() && isValidReport(request.resource.data);
-      allow update: if isTechnician() || isAdmin();
+      // Allow public read for map markers, but keep detailed list for admin
+      allow read: if true; 
+      allow create: if isValidReport(request.resource.data);
+      allow update: if isAdmin();
       allow delete: if isAdmin();
     }
   }

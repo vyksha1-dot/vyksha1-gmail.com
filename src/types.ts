@@ -1,7 +1,10 @@
 export interface PotholeReport {
   id: string;
-  userId: string;
-  userEmail: string;
+  userId?: string;
+  userEmail?: string;
+  reporterName: string;
+  reporterPhone: string;
+  reporterEmail: string;
   imageUrl: string;
   location: {
     latitude: number;

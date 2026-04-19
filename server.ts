@@ -4,6 +4,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import Stripe from "stripe";
 import dotenv from "dotenv";
+import { Resend } from "resend";
 
 dotenv.config();
 
@@ -33,6 +34,70 @@ app.get("/api/health", (req, res) => {
     stripeConfigured: !!process.env.STRIPE_SECRET_KEY,
     environment: process.env.NODE_ENV
   });
+});
+
+app.post("/api/notify-report", async (req, res) => {
+  try {
+    const { report } = req.body;
+    const adminEmail = process.env.ADMIN_EMAIL || 'vik@quickfixpothole.com';
+    
+    console.log(`[ALERT] NEW POTHOLE REPORT FILED:
+      ID: ${report.id}
+      REPORTER: ${report.reporterName}
+      PHONE: ${report.reporterPhone}
+      EMAIL: ${report.reporterEmail}
+      ADDRESS: ${report.location.address}
+      SEVERITY: ${report.severity}
+    `);
+
+    // Resend Email Notification
+    if (process.env.RESEND_API_KEY) {
+      const resend = new Resend(process.env.RESEND_API_KEY);
+      await resend.emails.send({
+        from: 'Quick Fix Notifications <notifications@quickfixpothole.com>',
+        to: adminEmail,
+        subject: `🚨 NEW REPORT: ${report.reporterName} - ${report.location.address}`,
+        html: `
+          <div style="font-family: sans-serif; border: 10px solid #000; padding: 20px; background: #fff;">
+            <h1 style="text-transform: uppercase; font-size: 40px; margin: 0; line-height: 0.8; letter-spacing: -2px;">NEW POTHOLE<br/><span style="background: #eaff00; padding: 0 5px;">REPORTED.</span></h1>
+            <div style="margin-top: 20px; font-weight: bold; font-size: 12px; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; text-transform: uppercase;">
+              Ticker #${report.id.slice(0, 8)} | Severity: ${report.severity}
+            </div>
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td style="padding: 10px; border: 1px solid #ddd; width: 100px; font-size: 10px; text-transform: uppercase; font-weight: bold;">Reporter</td>
+                <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">${report.reporterName}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px; border: 1px solid #ddd; font-size: 10px; text-transform: uppercase; font-weight: bold;">Phone</td>
+                <td style="padding: 10px; border: 1px solid #ddd;">${report.reporterPhone}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px; border: 1px solid #ddd; font-size: 10px; text-transform: uppercase; font-weight: bold;">Email</td>
+                <td style="padding: 10px; border: 1px solid #ddd;">${report.reporterEmail}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px; border: 1px solid #ddd; font-size: 10px; text-transform: uppercase; font-weight: bold;">Location</td>
+                <td style="padding: 10px; border: 1px solid #ddd; background: #f4f4f4;">${report.location.address || 'GPS Tagged'}</td>
+              </tr>
+            </table>
+            <div style="margin-top: 20px;">
+              <h4 style="margin: 0; font-size: 10px; text-transform: uppercase; opacity: 0.5;">Description</h4>
+              <p style="font-size: 16px; font-weight: bold; margin-top: 5px;">${report.description || 'No description provided.'}</p>
+            </div>
+            <div style="margin-top: 30px; text-align: center;">
+              <a href="${process.env.APP_URL || 'https://quickfixpothole.com'}" style="background: #000; color: #fff; text-decoration: none; padding: 15px 30px; font-weight: bold; text-transform: uppercase; font-size: 12px; letter-spacing: 2px;">Open Admin Portal</a>
+            </div>
+          </div>
+        `
+      });
+    }
+
+    res.json({ success: true, alerted: adminEmail });
+  } catch (error: any) {
+    console.error("Notification Error:", error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 app.post("/api/create-checkout-session", async (req, res) => {
