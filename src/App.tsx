@@ -354,7 +354,7 @@ function LandingPage({ onLogin, isLoading }: { onLogin: () => void, isLoading: b
       <footer className="bg-ink text-paper py-24 px-12 border-t-[20px] border-neon">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-24">
           <div className="col-span-2 space-y-8">
-            <h2 className="text-5xl font-black tracking-tighter uppercase">1HOURPOTHOLE.COM</h2>
+            <h2 className="text-5xl font-black tracking-tighter uppercase">QUICKFIXPOTHOLE.COM</h2>
             <p className="max-w-md font-bold uppercase text-xs opacity-40 leading-relaxed">
               Based in the heart of the city, we are the dedicated task force for urban road integrity. 
               Our mission is zero-delay pavement safety through cutting edge rapid-response tech.
@@ -371,7 +371,7 @@ function LandingPage({ onLogin, isLoading }: { onLogin: () => void, isLoading: b
           <div className="space-y-6 text-right">
             <h4 className="text-[10px] font-black uppercase tracking-[0.4em] opacity-30">Connect</h4>
             <div className="flex flex-col gap-4 font-black uppercase text-xs items-end">
-              <a href="#" className="hover:text-neon">Repair@1hourpothole.com</a>
+              <a href="#" className="hover:text-neon">vik@quickfixpothole.com</a>
               <a href="#" className="hover:text-neon">Dispatch Hotline</a>
             </div>
           </div>

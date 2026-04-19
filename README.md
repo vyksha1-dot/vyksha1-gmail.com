@@ -1,10 +1,10 @@
-# 1 Hour Pothole Repair - Rapid Response Platform
+# Quick Fix Pothole - Rapid Response Platform
 
 Professional on-demand pothole repair platform with dynamic pricing, real-time tracking, and Stripe integration.
 
 ## 🚀 Custom Domain & Deployment Guide
 
-Follow these steps to move your app from the AI Studio sandbox to your own custom domain (e.g., `www.1hourpothole.com`).
+Follow these steps to move your app from the AI Studio sandbox to your own custom domain (e.g., `www.quickfixpothole.com`).
 
 ### 1. Export to GitHub
 1. In the AI Studio sidebar, click the **Settings (Gear Icon)**.
@@ -24,7 +24,7 @@ Because this app uses an Express backend, you need a host that supports full-sta
 
 ### 3. Connect Your Domain
 1. In Vercel Project Settings, go to **Domains**.
-2. Enter your domain (e.g., `1hourpothole.com`) and click Add.
+2. Enter your domain (e.g., `quickfixpothole.com`) and click Add.
 3. Vercel will provide an **A Record** or **CNAME Record**.
 4. Log in to your domain provider (GoDaddy, Google Domains, etc.) and add these records to your DNS settings.
 
@@ -50,7 +50,7 @@ Vercel is great for static sites, but this app has a server. If your API routes 
 #### Payment Persistence Checklist (Stripe)
 If clicking "Confirm Repair" doesn't take you to the Stripe payment screen:
 1. **Environment Variables**: Go to Vercel Settings > Environment Variables. You MUST add `STRIPE_SECRET_KEY` with your secret key from Stripe (`sk_live_...`).
-2. **APP_URL**: Add an environment variable `APP_URL` set to `https://1hourpotholerepair.com`. This tells Stripe where to send the user after they pay.
+2. **APP_URL**: Add an environment variable `APP_URL` set to `https://quickfixpothole.com`. This tells Stripe where to send the user after they pay.
 3. **Redeploy**: If you just added the `vercel.json` file, you MUST go to the "Deployments" tab in Vercel and click **Redeploy** on the latest build to activate the new routing rules.
 4. **Browser Console**: Right-click the page, select "Inspect", and go to the "Console" tab. If you see an error like "Stripe not configured", it confirms Step 1 is missing.
 
@@ -73,7 +73,7 @@ To prevent security blocks, you must add your new domain to your third-party ser
 1. Go to the [Firebase Console](https://console.firebase.google.com/).
 2. Select your project.
 3. Go to **Authentication** > **Settings** > **Authorized Domains**.
-4. Add your domain name (e.g., `1hourpothole.com`).
+4. Add your domain name (e.g., `quickfixpothole.com`).
 
 #### Stripe (Payment support)
 1. Go to your [Stripe Dashboard](https://dashboard.stripe.com/).
