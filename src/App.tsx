@@ -674,8 +674,8 @@ export default function App() {
     }
   };
 
-  const isTechnician = profile?.role === 'technician' || profile?.role === 'admin' || user?.email === 'vyksha1@gmail.com' || user?.email === 'vik@quickfixpothole.com';
-  const isAdmin = profile?.role === 'admin' || user?.email === 'vyksha1@gmail.com' || user?.email === 'vik@quickfixpothole.com';
+  const isTechnician = profile?.role === 'technician' || profile?.role === 'admin' || user?.email === 'vik@quickfixpothole.com';
+  const isAdmin = profile?.role === 'admin' || user?.email === 'vik@quickfixpothole.com';
 
   const updateStatus = async (reportId: string, newStatus: PotholeReport['status']) => {
     if (!isTechnician) return;
