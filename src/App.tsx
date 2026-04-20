@@ -336,16 +336,22 @@ export default function App() {
       location: {
         latitude: reportLocation?.lat || (reportAddress ? 38.2527 : 0),
         longitude: reportLocation?.lng || (reportAddress ? -85.7585 : 0),
-        address: reportAddress || undefined,
       },
       status: 'pending',
       paymentStatus: 'unpaid',
       price: finalPrice,
       severity: reportSeverity,
       description: reportDescription,
-      measurements: reportMeasurements || undefined,
       createdAt: Date.now(),
     };
+
+    if (reportAddress) {
+      newReport.location.address = reportAddress;
+    }
+
+    if (reportMeasurements) {
+      newReport.measurements = reportMeasurements;
+    }
 
     try {
       await setDoc(doc(db, 'reports', reportId), newReport);
