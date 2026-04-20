@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
+import { Logo } from './Logo';
 import { Clock, AlertTriangle, CheckCircle } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { isAfterHours } from '../lib/pricing';
@@ -10,9 +11,7 @@ export function LandingPage({ onLogin, onReport, isLoading }: { onLogin: () => v
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-[50] border-b-4 border-ink bg-paper/80 backdrop-blur-md px-12 py-6 flex justify-between items-center">
         <div className="flex items-center gap-3">
-          <div className="bg-neon p-2 border-2 border-ink">
-            <Clock className="w-6 h-6" />
-          </div>
+          <Logo className="w-10 h-10" />
           <span className="font-black text-2xl uppercase tracking-tighter">QUICK FIX</span>
         </div>
         <div className="flex gap-8 items-center">
@@ -34,7 +33,7 @@ export function LandingPage({ onLogin, onReport, isLoading }: { onLogin: () => v
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-72 pb-24 px-12 min-h-screen flex flex-col justify-center border-b-[20px] border-ink">
+      <section className="pt-80 pb-24 px-12 min-h-screen flex flex-col items-start border-b-[20px] border-ink">
         <motion.div
           initial={{ opacity: 0, scale: 1.1 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -49,7 +48,7 @@ export function LandingPage({ onLogin, onReport, isLoading }: { onLogin: () => v
         </motion.div>
 
         <div className="relative z-10 space-y-12">
-          <h1 className="text-[clamp(6rem,18vw,24rem)] leading-[0.78] font-black tracking-[-0.04em] uppercase">
+          <h1 className="text-[clamp(4rem,13vw,14rem)] leading-[0.82] font-black tracking-[-0.04em] uppercase">
             Quick Fix<br />
             <span className="text-neon bg-ink pr-8">Pothole.</span><br />
             Done.

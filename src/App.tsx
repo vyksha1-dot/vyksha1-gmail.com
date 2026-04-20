@@ -5,6 +5,7 @@
 
 import * as React from 'react';
 import { useState, useEffect, useRef, ChangeEvent } from 'react';
+import { Logo } from './components/Logo';
 import { 
   auth, db, OperationType, handleFirestoreError 
 } from './firebase';
@@ -382,7 +383,7 @@ export default function App() {
     }
   };
 
-  const isAdmin = profile?.role === 'admin' || user?.email === (process.env.ADMIN_EMAIL || 'vik@quickfixpothole.com');
+  const isAdmin = profile?.role === 'admin' || user?.email === (process.env.ADMIN_EMAIL || 'vyksha1@gmail.com');
 
   const updateStatus = async (reportId: string, newStatus: PotholeReport['status']) => {
     if (!isAdmin) return;
@@ -476,7 +477,8 @@ export default function App() {
         {/* Main Content Area */}
         <main className="flex-1 flex flex-col relative overflow-hidden">
           {/* Header */}
-          <header className="p-12 pb-6">
+          <header className="p-12 pb-6 flex items-start gap-8">
+            <Logo className="w-32 h-32" />
             <h1 className="text-[120px] leading-[0.85] font-black tracking-[-6px] uppercase">
               QUICK FIX<br />POTHOLE
             </h1>
