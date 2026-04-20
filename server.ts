@@ -39,25 +39,30 @@ app.get("/api/health", (req, res) => {
 app.post("/api/notify-report", async (req, res) => {
   try {
     const { report } = req.body;
-    const adminEmail = process.env.ADMIN_EMAIL || 'vik@quickfixpothole.com';
+    if (!report || !report.location) {
+      return res.status(400).json({ error: "Invalid report data" });
+    }
+
+    const adminEmail = process.env.ADMIN_EMAIL || 'vyksha1@gmail.com';
+    const resendApiKey = process.env.RESEND_API_KEY;
     
     console.log(`[ALERT] NEW POTHOLE REPORT FILED:
       ID: ${report.id}
       REPORTER: ${report.reporterName}
-      PHONE: ${report.reporterPhone}
-      EMAIL: ${report.reporterEmail}
-      ADDRESS: ${report.location.address}
-      SEVERITY: ${report.severity}
+      ADDRESS: ${report.location.address || 'GPS Only'}
     `);
 
     // Resend Email Notification
-    if (process.env.RESEND_API_KEY) {
+    if (resendApiKey) {
       try {
-        const resend = new Resend(process.env.RESEND_API_KEY);
+        const resend = new Resend(resendApiKey);
+        // If domain is not verified, Resend only allows sending to the account owner via onboarding@resend.dev
+        const fromEmail = 'Quick Fix <onboarding@resend.dev>';
+        
         await resend.emails.send({
-          from: 'Quick Fix Notifications <notifications@quickfixpothole.com>',
+          from: fromEmail,
           to: adminEmail,
-          subject: `🚨 NEW REPORT: ${report.reporterName} - ${report.location.address}`,
+          subject: `🚨 NEW REPORT: ${report.reporterName}`,
           html: `
             <div style="font-family: sans-serif; border: 10px solid #000; padding: 20px; background: #fff;">
               <h1 style="text-transform: uppercase; font-size: 40px; margin: 0; line-height: 0.8; letter-spacing: -2px;">NEW POTHOLE<br/><span style="background: #eaff00; padding: 0 5px;">REPORTED.</span></h1>
@@ -70,14 +75,6 @@ app.post("/api/notify-report", async (req, res) => {
                   <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">${report.reporterName}</td>
                 </tr>
                 <tr>
-                  <td style="padding: 10px; border: 1px solid #ddd; font-size: 10px; text-transform: uppercase; font-weight: bold;">Phone</td>
-                  <td style="padding: 10px; border: 1px solid #ddd;">${report.reporterPhone}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 10px; border: 1px solid #ddd; font-size: 10px; text-transform: uppercase; font-weight: bold;">Email</td>
-                  <td style="padding: 10px; border: 1px solid #ddd;">${report.reporterEmail}</td>
-                </tr>
-                <tr>
                   <td style="padding: 10px; border: 1px solid #ddd; font-size: 10px; text-transform: uppercase; font-weight: bold;">Location</td>
                   <td style="padding: 10px; border: 1px solid #ddd; background: #f4f4f4;">${report.location.address || 'GPS Tagged'}</td>
                 </tr>
@@ -86,14 +83,11 @@ app.post("/api/notify-report", async (req, res) => {
                 <h4 style="margin: 0; font-size: 10px; text-transform: uppercase; opacity: 0.5;">Description</h4>
                 <p style="font-size: 16px; font-weight: bold; margin-top: 5px;">${report.description || 'No description provided.'}</p>
               </div>
-              <div style="margin-top: 30px; text-align: center;">
-                <a href="${process.env.APP_URL || 'https://quickfixpothole.com'}" style="background: #000; color: #fff; text-decoration: none; padding: 15px 30px; font-weight: bold; text-transform: uppercase; font-size: 12px; letter-spacing: 2px;">Open Admin Portal</a>
-              </div>
             </div>
           `
         });
       } catch (emailError) {
-        console.error("Email notification failed internally, but report was saved:", emailError);
+        console.error("Email notification failed:", emailError);
       }
     }
 

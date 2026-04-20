@@ -34,7 +34,7 @@ export function LandingPage({ onLogin, onReport, isLoading }: { onLogin: () => v
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-48 pb-24 px-12 min-h-screen flex flex-col justify-center border-b-[20px] border-ink">
+      <section className="pt-72 pb-24 px-12 min-h-screen flex flex-col justify-center border-b-[20px] border-ink">
         <motion.div
           initial={{ opacity: 0, scale: 1.1 }}
           animate={{ opacity: 1, scale: 1 }}
