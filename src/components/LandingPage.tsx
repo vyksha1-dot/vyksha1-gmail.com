@@ -8,7 +8,7 @@ export function LandingPage({ onLogin, onReport, isLoading }: { onLogin: () => v
   return (
     <div className="min-h-screen bg-paper text-ink overflow-x-hidden">
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-[200] border-b-4 border-ink bg-paper/80 backdrop-blur-md px-12 py-6 flex justify-between items-center">
+      <nav className="fixed top-0 left-0 right-0 z-[50] border-b-4 border-ink bg-paper/80 backdrop-blur-md px-12 py-6 flex justify-between items-center">
         <div className="flex items-center gap-3">
           <div className="bg-neon p-2 border-2 border-ink">
             <Clock className="w-6 h-6" />
