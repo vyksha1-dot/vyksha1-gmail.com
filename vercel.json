@@ -6,7 +6,10 @@
       "destination": "/api/index"
     },
     {
-      "source": "/((?!assets|favicon.ico|logo.svg|api/).*)",
+      "handle": "filesystem"
+    },
+    {
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ]
