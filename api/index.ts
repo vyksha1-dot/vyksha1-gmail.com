@@ -47,7 +47,8 @@ app.post("/api/notify-report", async (req, res) => {
 
     console.log(`[NOTIFY] Data received for report: ${report?.id || 'unknown'}`);
 
-    res.json({ success: true, status: "processing" });
+    let adminResult = null;
+    let customerResult = null;
 
     if (resendApiKey) {
       try {
@@ -69,15 +70,18 @@ app.post("/api/notify-report", async (req, res) => {
           </div>
         `;
 
-        await resend.emails.send({
+        // Wait for Admin email
+        adminResult = await resend.emails.send({
           from: `Quick Fix Alert <${fromEmail}>`,
           to: adminEmail,
           subject: `🚨 NEW REPORT: ${report.reporterName || 'New Pothole'}`,
           html: emailContent
         });
+        console.log(`[NOTIFY] Admin email sent:`, adminResult);
 
+        // Wait for Customer email (if they provided an email)
         if (report.reporterEmail && report.reporterEmail.includes('@')) {
-          await resend.emails.send({
+          customerResult = await resend.emails.send({
             from: `Quick Fix <${fromEmail}>`,
             to: report.reporterEmail,
             subject: `Request Received: Ticket #${report.id ? report.id.slice(0, 8) : 'N/A'}`,
@@ -90,14 +94,22 @@ app.post("/api/notify-report", async (req, res) => {
               </div>
             `
           });
+          console.log(`[NOTIFY] Customer email sent to ${report.reporterEmail}:`, customerResult);
         }
-        console.log(`[NOTIFY] Emails processed for report ${report.id}`);
       } catch (emailErr: any) {
         console.error("[NOTIFY] Resend Error:", emailErr?.message || emailErr);
       }
     } else {
       console.warn("[NOTIFY] RESEND_API_KEY is missing. Skipping email.");
     }
+
+    // Respond only AFTER everything is attempted
+    res.json({ 
+      success: true, 
+      status: "complete",
+      adminSent: !!adminResult,
+      customerSent: !!customerResult 
+    });
   } catch (error: any) {
     console.error("[NOTIFY] Global error:", error);
     if (!res.headersSent) {
