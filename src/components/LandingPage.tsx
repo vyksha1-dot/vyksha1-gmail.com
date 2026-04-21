@@ -92,50 +92,27 @@ export function LandingPage({ onLogin, onReport, isLoading }: { onLogin: () => v
       </section>
 
       {/* How It Works */}
-      <section className="py-20 px-8 bg-ink text-paper overflow-hidden relative">
-        <div className="flex flex-col md:flex-row gap-16 items-center">
-          <div className="flex-1 space-y-8 relative z-10">
-            <h2 className="text-6xl font-black uppercase tracking-tighter leading-none">
+      <section className="py-12 px-8 bg-ink text-paper overflow-hidden relative border-b-4 border-neon">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row gap-12 items-start">
+          <div className="flex-1 space-y-6 relative z-10">
+            <h2 className="text-4xl font-black uppercase tracking-tighter leading-none">
               How the <br/><span className="text-neon">rapid fix</span> works
             </h2>
-            <div className="space-y-12 max-w-lg">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
               {[
-                { n: "01", t: "Scan & Tag", d: "Snap a photo of the pothole. Our system automatically tags the GPS location and estimated severity." },
-                { n: "02", t: "Instant Dispatch", d: "A technician is dispatched within 5 minutes. You get a live countdown link to track their arrival." },
-                { n: "03", t: "60-Min Repair", d: "The hole is cleaned, filled, and sealed using professional-grade quick-dry asphalt. Complete in 1 hour." }
+                { n: "01", t: "Scan & Tag", d: "Snap a photo. Our system tags GPS and severity." },
+                { n: "02", t: "Dispatch", d: "Technician arrives within minutes. Track live." },
+                { n: "03", t: "Fix", d: "Cleaned, filled, and sealed in 60 minutes." }
               ].map((step, i) => (
-                <div key={i} className="flex gap-8 group">
-                  <span className="text-5xl font-black text-neon opacity-20 group-hover:opacity-100 transition-opacity">{step.n}</span>
+                <div key={i} className="flex flex-col gap-2 group">
+                  <span className="text-3xl font-black text-neon opacity-20 group-hover:opacity-100 transition-opacity">{step.n}</span>
                   <div>
-                    <h3 className="text-2xl font-black uppercase mb-2">{step.t}</h3>
-                    <p className="text-sm font-bold uppercase opacity-60 leading-relaxed">{step.d}</p>
+                    <h3 className="text-lg font-black uppercase mb-1">{step.t}</h3>
+                    <p className="text-[10px] font-bold uppercase opacity-60 leading-tight">{step.d}</p>
                   </div>
                 </div>
               ))}
             </div>
-          </div>
-          <div className="flex-1 relative">
-            <div className="aspect-square border-[10px] border-paper transform rotate-3 overflow-hidden bold-shadow">
-              <img 
-                src="https://picsum.photos/seed/pothole_fix/1200/1200" 
-                alt="Pothole repair in action" 
-                className="w-full h-full object-cover grayscale"
-                referrerPolicy="no-referrer"
-              />
-              <div className="absolute inset-0 bg-neon/20 mix-blend-multiply" />
-            </div>
-            {/* Floating UI Elements */}
-            <motion.div 
-              animate={{ y: [0, -20, 0], rotate: [-2, 2, -2] }}
-              transition={{ repeat: Infinity, duration: 4 }}
-              className="absolute -top-12 -left-12 bg-paper text-ink p-4 border-4 border-ink bold-shadow"
-            >
-              <div className="flex items-center gap-2 mb-1">
-                <Clock className="w-4 h-4 text-neon fill-ink" />
-                <span className="text-[10px] font-black uppercase">Timer Active</span>
-              </div>
-              <div className="text-3xl font-black italic">42:19</div>
-            </motion.div>
           </div>
         </div>
       </section>

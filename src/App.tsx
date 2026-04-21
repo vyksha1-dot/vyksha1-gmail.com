@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
 import { MapContainer, TileLayer, Marker, Popup, useMap, LayersControl } from 'react-leaflet';
+import MarkerClusterGroup from 'react-leaflet-cluster';
 import { QRCodeSVG } from 'qrcode.react';
 import { GoogleGenAI, Type } from "@google/genai";
 import 'leaflet/dist/leaflet.css';
@@ -66,6 +67,14 @@ function MapUpdater({ center }: { center: [number, number] }) {
   }, [center, map]);
   return null;
 }
+
+const createCustomClusterIcon = (cluster: any) => {
+  return L.divIcon({
+    html: `<span>${cluster.getChildCount()}</span>`,
+    className: 'marker-cluster-custom',
+    iconSize: L.point(40, 40, true),
+  });
+};
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -558,35 +567,41 @@ export default function App() {
                         />
                       </LayersControl.BaseLayer>
                     </LayersControl>
-                    {reports.filter(r => r.location.latitude !== 0 && r.location.longitude !== 0).map(report => (
-                      <Marker 
-                        key={report.id} 
-                        position={[report.location.latitude, report.location.longitude]}
-                        eventHandlers={{
-                          click: () => setSelectedReport(report),
-                        }}
-                      >
-                        <Popup>
-                          <div className="p-1 font-sans w-48">
-                            <img src={report.imageUrl} alt="Pothole" className="w-full h-24 object-cover border-2 border-ink mb-2" />
-                            <div className="flex justify-between items-center mb-2">
-                              <p className="font-black text-xs uppercase">{report.status}</p>
-                              <p className="font-black text-sm tracking-tighter">${report.price || 'TBD'}</p>
+                    <MarkerClusterGroup
+                      chunkedLoading
+                      maxClusterRadius={60}
+                      iconCreateFunction={createCustomClusterIcon}
+                    >
+                      {reports.filter(r => r.location.latitude !== 0 && r.location.longitude !== 0).map(report => (
+                        <Marker 
+                          key={report.id} 
+                          position={[report.location.latitude, report.location.longitude]}
+                          eventHandlers={{
+                            click: () => setSelectedReport(report),
+                          }}
+                        >
+                          <Popup>
+                            <div className="p-1 font-sans w-48">
+                              <img src={report.imageUrl} alt="Pothole" className="w-full h-24 object-cover border-2 border-ink mb-2" />
+                              <div className="flex justify-between items-center mb-2">
+                                <p className="font-black text-xs uppercase">{report.status}</p>
+                                <p className="font-black text-sm tracking-tighter">${report.price || 'TBD'}</p>
+                              </div>
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedReport(report);
+                                  setShowQR(true);
+                                }}
+                                className="w-full py-2 bg-neon border-2 border-ink text-[10px] font-black uppercase tracking-widest hover:bg-ink hover:text-paper transition-all"
+                              >
+                                View QR Ticket
+                              </button>
                             </div>
-                            <button 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedReport(report);
-                                setShowQR(true);
-                              }}
-                              className="w-full py-2 bg-neon border-2 border-ink text-[10px] font-black uppercase tracking-widest hover:bg-ink hover:text-paper transition-all"
-                            >
-                              View QR Ticket
-                            </button>
-                          </div>
-                        </Popup>
-                      </Marker>
-                    ))}
+                          </Popup>
+                        </Marker>
+                      ))}
+                    </MarkerClusterGroup>
                   </MapContainer>
                   {/* Map Grid Overlay Effect */}
                   <div className="absolute inset-0 pointer-events-none opacity-5 grid grid-cols-12 grid-rows-12">
