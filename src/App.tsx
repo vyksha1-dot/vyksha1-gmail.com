@@ -87,6 +87,7 @@ export default function App() {
   const [showQR, setShowQR] = useState(false);
   const [isPaying, setIsPaying] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [reportToDelete, setReportToDelete] = useState<string | null>(null);
   
   // Report Form State
   const [isReporting, setIsReporting] = useState(false);
@@ -418,10 +419,14 @@ export default function App() {
 
   const deleteReport = async (reportId: string) => {
     if (!isAdmin) return;
+    setReportToDelete(reportId);
+  };
+
+  const confirmDelete = async () => {
+    if (!reportToDelete || !isAdmin) return;
     
-    if (!window.confirm("Are you sure you want to PERMANENTLY delete this repair ticket? This cannot be undone.")) {
-      return;
-    }
+    const reportId = reportToDelete;
+    setReportToDelete(null); // Close modal first for UX
 
     try {
       await deleteDoc(doc(db, 'reports', reportId));
@@ -993,6 +998,64 @@ export default function App() {
               </div>
             )}
           </AnimatePresence>
+
+          {/* Delete Confirmation Modal */}
+          <AnimatePresence>
+            {reportToDelete && (
+              <div className="fixed inset-0 z-[600] flex items-center justify-center p-4">
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setReportToDelete(null)}
+                  className="absolute inset-0 bg-ink/80 backdrop-blur-md"
+                />
+                <motion.div 
+                  initial={{ scale: 0.9, opacity: 0, rotate: -2 }}
+                  animate={{ scale: 1, opacity: 1, rotate: 0 }}
+                  exit={{ scale: 0.9, opacity: 0 }}
+                  className="relative bg-paper w-full max-w-md border-8 border-ink p-12 text-center space-y-8 bold-shadow"
+                >
+                  <div className="flex justify-center">
+                    <div className="p-6 bg-red-500 border-4 border-ink">
+                      <AlertTriangle className="w-12 h-12 text-paper" />
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <h3 className="text-4xl font-black uppercase tracking-tighter leading-none">DANGER ZONE</h3>
+                    <p className="text-sm font-bold uppercase opacity-60 leading-relaxed">
+                      You are about to <span className="text-red-600 underline decoration-4 underline-offset-4">permanently destroy</span> this repair ticket. This action is irreversible and the data will be purged from the central ledger.
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-1 gap-4">
+                    <button 
+                      onClick={confirmDelete}
+                      className="py-4 bg-red-600 text-paper font-black uppercase text-sm tracking-[0.3em] border-4 border-ink shadow-[4px_4px_0px_0px_#000] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
+                    >
+                      CONFIRM DESTRUCTION
+                    </button>
+                    <button 
+                      onClick={() => setReportToDelete(null)}
+                      className="py-4 bg-paper text-ink font-black uppercase text-xs tracking-widest border-4 border-ink hover:bg-muted transition-colors"
+                    >
+                      ABORT ACTION
+                    </button>
+                  </div>
+                </motion.div>
+              </div>
+            )}
+          </AnimatePresence>
+
+          {/* Bright Bottom Banner */}
+          <div className="fixed bottom-0 left-0 right-0 z-[500] bg-neon text-ink border-t-4 border-ink py-1 overflow-hidden pointer-events-none">
+            <div className="flex animate-marquee-slower whitespace-nowrap">
+              {Array.from({ length: 20 }).map((_, i) => (
+                <span key={i} className="text-[10px] font-black uppercase tracking-widest mx-8">
+                  WWW.QUICKFIXPOTHOLE.COM <span className="text-ink/20 px-2">⚡</span>
+                </span>
+              ))}
+            </div>
+          </div>
       </div>
     </ErrorBoundary>
   );

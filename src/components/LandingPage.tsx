@@ -118,10 +118,10 @@ export function LandingPage({ onLogin, onReport, isLoading }: { onLogin: () => v
       </section>
 
       {/* Pricing Section */}
-      <section className="py-32 px-12 bg-paper">
-        <div className="text-center mb-24">
-          <div className="inline-block px-4 py-1 bg-ink text-neon font-black uppercase text-[10px] tracking-widest mb-4">Pricing Model</div>
-          <h2 className="text-7xl font-black uppercase tracking-tighter">Flat rate speed.</h2>
+      <section className="py-16 px-8 bg-paper">
+        <div className="text-center mb-12">
+          <div className="inline-block px-4 py-1 bg-ink text-neon font-black uppercase text-[10px] tracking-widest mb-2">Pricing Model</div>
+          <h2 className="text-5xl font-black uppercase tracking-tighter">Flat rate speed.</h2>
           <div className="mt-4 flex flex-col items-center gap-2">
              <div className="flex items-center gap-4 border-2 border-ink p-2 px-4 bg-paper font-black uppercase text-xs">
                 <span className={cn(isAfterHours() ? "opacity-30" : "text-ink")}>Standard: 6AM-5PM</span>
@@ -154,14 +154,14 @@ export function LandingPage({ onLogin, onReport, isLoading }: { onLogin: () => v
               feat: ["Deep structural issues", "Foundation check", "High-traffic fill"] 
             }
           ].map((tier, i) => (
-            <div key={i} className="border-4 border-ink p-12 bg-paper flex flex-col items-center text-center space-y-8 hover:-translate-y-4 transition-transform bold-shadow relative overflow-hidden group">
+            <div key={i} className="border-4 border-ink p-6 bg-paper flex flex-col items-center text-center space-y-6 hover:-translate-y-2 transition-transform bold-shadow relative overflow-hidden group">
               {isAfterHours() && (
-                <div className="absolute top-0 right-0 bg-ink text-neon px-4 py-1 font-black text-[10px] uppercase rotate-45 translate-x-4 translate-y-2">Night Rate x2</div>
+                <div className="absolute top-0 right-0 bg-ink text-neon px-4 py-0.5 font-black text-[8px] uppercase rotate-45 translate-x-4 translate-y-1">Night Rate x2</div>
               )}
-              <h3 className="text-2xl font-black uppercase tracking-tighter">{tier.name}</h3>
+              <h3 className="text-xl font-black uppercase tracking-tighter">{tier.name}</h3>
               <div className={cn(
                 "font-black leading-none tracking-tighter flex items-start",
-                tier.standard === "AFTER INSPECTION" ? "text-3xl" : "text-[80px]"
+                tier.standard === "AFTER INSPECTION" ? "text-2xl" : "text-6xl"
               )}>
                 {!isAfterHours() ? (
                   tier.standard === "AFTER INSPECTION" ? "AFTER INSPECTION" : (
@@ -184,12 +184,12 @@ export function LandingPage({ onLogin, onReport, isLoading }: { onLogin: () => v
                   {tier.standard === "AFTER INSPECTION" ? "" : (isAfterHours() ? `Day: ${tier.standard}` : `Night: ${tier.after}`)}
                 </p>
               </div>
-              <ul className="space-y-4 w-full border-y-2 border-ink py-8 font-bold uppercase text-xs opacity-60">
+              <ul className="space-y-2 w-full border-y-2 border-ink py-4 font-bold uppercase text-[10px] opacity-60">
                 {tier.feat.map((f, j) => <li key={j}>{f}</li>)}
               </ul>
               <button 
                 onClick={onReport}
-                className="w-full py-4 bg-ink text-paper font-black uppercase text-xs tracking-[0.3em] hover:bg-neon hover:text-ink transition-colors"
+                className="w-full py-3 bg-ink text-paper font-black uppercase text-[10px] tracking-[0.2em] hover:bg-neon hover:text-ink transition-colors"
               >
                 Book This Repair
               </button>
@@ -229,6 +229,17 @@ export function LandingPage({ onLogin, onReport, isLoading }: { onLogin: () => v
           <span>Designed for Speed</span>
         </div>
       </footer>
+
+      {/* Bright Bottom Banner */}
+      <div className="bg-neon text-ink border-t-8 border-ink py-4 overflow-hidden relative">
+        <div className="flex animate-marquee-slower whitespace-nowrap">
+          {Array.from({ length: 12 }).map((_, i) => (
+            <span key={i} className="text-4xl font-black uppercase tracking-tighter mx-4">
+              WWW.QUICKFIXPOTHOLE.COM <span className="text-ink/20 px-4">⚡</span>
+            </span>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
