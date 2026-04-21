@@ -11,8 +11,7 @@ export function LandingPage({ onLogin, onReport, isLoading }: { onLogin: () => v
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-[50] border-b-4 border-ink bg-paper/80 backdrop-blur-md px-8 py-3 flex justify-between items-center">
         <div className="flex items-center gap-3">
-          <Logo className="w-8 h-8" />
-          <span className="font-black text-xl uppercase tracking-tighter">QUICK FIX</span>
+          <Logo className="w-20 h-20 md:w-32 md:h-32" />
         </div>
         <div className="flex gap-8 items-center">
           <button 
