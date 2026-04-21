@@ -26,14 +26,14 @@ export const Logo = ({ className = "w-12 h-12" }: { className?: string }) => {
           className="relative z-10 w-full h-full p-1"
         >
           <img 
-            src="/logo.png" 
+            src="https://drive.google.com/uc?id=1EXYFc8my-l1o7TBom7Ts7_xkz8Cwtlp_&export=download" 
             alt="Quick Pothole Fix Logo" 
             className="w-full h-full object-contain"
+            referrerPolicy="no-referrer"
             onError={(e) => {
-              // Fallback if logo.png is missing
+              // Fallback if the Drive link fails
               const target = e.target as HTMLImageElement;
-              target.style.display = 'none';
-              target.parentElement!.innerHTML = '<div class="w-full h-full flex items-center justify-center font-black text-[10px] uppercase text-center p-1">Upload logo.png to public/</div>';
+              target.src = "/logo.png"; // Try local fallback
             }}
           />
         </motion.div>
