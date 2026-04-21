@@ -8,9 +8,9 @@ export const Logo = ({ className = "w-12 h-12" }: { className?: string }) => {
       <div className="absolute inset-0 bg-ink translate-x-1 translate-y-1 transition-transform group-hover:translate-x-1.5 group-hover:translate-y-1.5" />
       
       {/* Main Container */}
-      <div className="absolute inset-0 bg-neon border-4 border-ink flex items-center justify-center overflow-hidden">
-        {/* Animated Grid lines in background */}
-        <div className="absolute inset-0 opacity-20 pointer-events-none">
+      <div className="absolute inset-0 bg-paper border-4 border-ink flex items-center justify-center overflow-hidden">
+        {/* Animated Grid lines in background - slightly more subtle */}
+        <div className="absolute inset-0 opacity-10 pointer-events-none">
           <div className="w-full h-full grid grid-cols-4 grid-rows-4">
             {Array.from({ length: 16 }).map((_, i) => (
               <div key={i} className="border-[0.5px] border-ink" />
@@ -18,32 +18,30 @@ export const Logo = ({ className = "w-12 h-12" }: { className?: string }) => {
           </div>
         </div>
 
-        {/* Brand Mark: stylized 'X' inside a square representing the 'fixed' pothole */}
+        {/* Brand Image Logo */}
         <motion.div
-          initial={{ scale: 0.8, rotate: -10 }}
+          initial={{ scale: 0.9, rotate: -5 }}
           animate={{ scale: 1, rotate: 0 }}
-          whileHover={{ scale: 1.1, rotate: 5 }}
-          className="relative z-10 w-2/3 h-2/3"
+          whileHover={{ scale: 1.1, rotate: 3 }}
+          className="relative z-10 w-full h-full p-1"
         >
-          <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-[2px_2px_0px_#000]">
-            <rect x="10" y="10" width="80" height="80" fill="none" stroke="black" strokeWidth="12" />
-            <motion.path
-              d="M25 25 L75 75 M75 25 L25 75"
-              fill="none"
-              stroke="black"
-              strokeWidth="12"
-              strokeLinecap="square"
-              initial={{ pathLength: 0 }}
-              animate={{ pathLength: 1 }}
-              transition={{ duration: 0.8, delay: 0.5, ease: "easeOut" }}
-            />
-          </svg>
+          <img 
+            src="/logo.png" 
+            alt="Quick Pothole Fix Logo" 
+            className="w-full h-full object-contain"
+            onError={(e) => {
+              // Fallback if logo.png is missing
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+              target.parentElement!.innerHTML = '<div class="w-full h-full flex items-center justify-center font-black text-[10px] uppercase text-center p-1">Upload logo.png to public/</div>';
+            }}
+          />
         </motion.div>
       </div>
       
       {/* Status Dot */}
       <div className="absolute -top-1 -right-1 w-3 h-3 bg-paper border-2 border-ink rounded-full z-20">
-        <div className="w-full h-full rounded-full bg-ink animate-pulse" />
+        <div className="w-full h-full rounded-full bg-neon animate-pulse" />
       </div>
     </div>
   );
