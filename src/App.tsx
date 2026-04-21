@@ -477,15 +477,15 @@ export default function App() {
         {/* Main Content Area */}
         <main className="flex-1 flex flex-col relative overflow-hidden">
           {/* Header */}
-          <header className="p-12 pb-6 flex items-start gap-8">
-            <Logo className="w-32 h-32" />
-            <h1 className="text-[120px] leading-[0.85] font-black tracking-[-6px] uppercase">
+          <header className="p-8 pb-4 flex items-start gap-6">
+            <Logo className="w-20 h-20" />
+            <h1 className="text-7xl leading-[0.85] font-black tracking-[-3px] uppercase">
               QUICK FIX<br />POTHOLE
             </h1>
           </header>
 
           {/* View Toggle & Content */}
-          <div className="flex-1 flex flex-col px-12 pb-12 overflow-hidden">
+          <div className="flex-1 flex flex-col px-8 pb-8 overflow-hidden">
             <div className="flex items-center gap-4 mb-6">
               <button 
                 onClick={() => setView('map')}

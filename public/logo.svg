@@ -1,0 +1,14 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Neon Background Patch -->
+  <rect x="40" y="40" width="432" height="432" fill="#E2FF00" stroke="black" stroke-width="32"/>
+  
+  <!-- "X" Mark (The Fix) -->
+  <path d="M140 140L372 372M372 140L140 372" stroke="black" stroke-width="48" stroke-linecap="square"/>
+  
+  <!-- Detail: Grid lines (Subtle) -->
+  <path d="M40 148H472M40 256H472M40 364H472M148 40V472M256 40V472M364 40V472" stroke="black" stroke-width="4" stroke-opacity="0.1"/>
+  
+  <!-- Status Dot -->
+  <circle cx="460" cy="52" r="28" fill="white" stroke="black" stroke-width="8"/>
+  <circle cx="460" cy="52" r="14" fill="black"/>
+</svg>

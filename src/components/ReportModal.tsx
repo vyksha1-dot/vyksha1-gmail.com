@@ -45,10 +45,10 @@ export function ReportModal({
             exit={{ y: "100%" }}
             className="relative bg-white w-full max-w-lg border-4 border-ink overflow-hidden bold-shadow flex flex-col max-h-[90vh]"
           >
-            <div className="p-6 border-b-4 border-ink flex items-center justify-between bg-neon">
-              <h3 className="text-2xl font-black uppercase tracking-tighter">1HR REPAIR REQUEST</h3>
+            <div className="p-4 border-b-4 border-ink flex items-center justify-between bg-neon">
+              <h3 className="text-xl font-black uppercase tracking-tighter">1HR REPAIR REQUEST</h3>
               <button onClick={onClose} className="p-2 hover:bg-ink hover:text-paper transition-colors border-2 border-ink">
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
             
@@ -56,40 +56,40 @@ export function ReportModal({
               ⚡ 60-Minute Rapid Response Target ⚡
             </div>
             
-            <div className="p-6 space-y-6 overflow-y-auto">
+            <div className="p-4 space-y-4 overflow-y-auto">
               {/* Reporter Info */}
-              <div className="space-y-4 pt-2">
-                <h4 className="text-xs font-black uppercase tracking-widest border-b-2 border-ink pb-2 mb-4">Reporter Information</h4>
-                <div className="grid grid-cols-1 gap-4">
+              <div className="space-y-3 pt-1">
+                <h4 className="text-[10px] font-black uppercase tracking-widest border-b-2 border-ink pb-1 mb-3">Reporter Information</h4>
+                <div className="grid grid-cols-1 gap-3">
                   <div>
-                    <label className="text-[9px] font-black uppercase tracking-widest mb-1 block opacity-50">Full Name</label>
+                    <label className="text-[8px] font-black uppercase tracking-widest mb-1 block opacity-50">Full Name</label>
                     <input 
                       type="text"
                       value={reportName}
                       onChange={(e) => setReportName(e.target.value)}
                       placeholder="YOUR NAME..."
-                      className="w-full p-3 bg-muted border-2 border-ink font-bold uppercase text-xs"
+                      className="w-full p-2 bg-muted border-2 border-ink font-bold uppercase text-xs"
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="text-[9px] font-black uppercase tracking-widest mb-1 block opacity-50">Phone Number</label>
+                      <label className="text-[8px] font-black uppercase tracking-widest mb-1 block opacity-50">Phone Number</label>
                       <input 
                         type="tel"
                         value={reportPhone}
                         onChange={(e) => setReportPhone(e.target.value)}
                         placeholder="PHONE..."
-                        className="w-full p-3 bg-muted border-2 border-ink font-bold uppercase text-xs"
+                        className="w-full p-2 bg-muted border-2 border-ink font-bold uppercase text-xs"
                       />
                     </div>
                     <div>
-                      <label className="text-[9px] font-black uppercase tracking-widest mb-1 block opacity-50">Email (Receipt)</label>
+                      <label className="text-[8px] font-black uppercase tracking-widest mb-1 block opacity-50">Email (Receipt)</label>
                       <input 
                         type="email"
                         value={reportEmail}
                         onChange={(e) => setReportEmail(e.target.value)}
                         placeholder="EMAIL..."
-                        className="w-full p-3 bg-muted border-2 border-ink font-bold uppercase text-xs"
+                        className="w-full p-2 bg-muted border-2 border-ink font-bold uppercase text-xs"
                       />
                     </div>
                   </div>

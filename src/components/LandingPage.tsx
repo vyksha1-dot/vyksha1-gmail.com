@@ -9,10 +9,10 @@ export function LandingPage({ onLogin, onReport, isLoading }: { onLogin: () => v
   return (
     <div className="min-h-screen bg-paper text-ink overflow-x-hidden">
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-[50] border-b-4 border-ink bg-paper/80 backdrop-blur-md px-12 py-6 flex justify-between items-center">
+      <nav className="fixed top-0 left-0 right-0 z-[50] border-b-4 border-ink bg-paper/80 backdrop-blur-md px-8 py-3 flex justify-between items-center">
         <div className="flex items-center gap-3">
-          <Logo className="w-10 h-10" />
-          <span className="font-black text-2xl uppercase tracking-tighter">QUICK FIX</span>
+          <Logo className="w-8 h-8" />
+          <span className="font-black text-xl uppercase tracking-tighter">QUICK FIX</span>
         </div>
         <div className="flex gap-8 items-center">
           <button 
@@ -33,7 +33,7 @@ export function LandingPage({ onLogin, onReport, isLoading }: { onLogin: () => v
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-80 pb-24 px-12 min-h-screen flex flex-col items-start border-b-[20px] border-ink">
+      <section className="pt-48 pb-16 px-8 min-h-screen flex flex-col items-start border-b-[20px] border-ink">
         <motion.div
           initial={{ opacity: 0, scale: 1.1 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -47,15 +47,15 @@ export function LandingPage({ onLogin, onReport, isLoading }: { onLogin: () => v
           </div>
         </motion.div>
 
-        <div className="relative z-10 space-y-12">
-          <h1 className="text-[clamp(4rem,13vw,14rem)] leading-[0.82] font-black tracking-[-0.04em] uppercase">
+        <div className="relative z-10 space-y-8">
+          <h1 className="text-[clamp(3rem,10vw,10rem)] leading-[0.82] font-black tracking-[-0.04em] uppercase">
             Quick Fix<br />
-            <span className="text-neon bg-ink pr-8">Pothole.</span><br />
+            <span className="text-neon bg-ink pr-6">Pothole.</span><br />
             Done.
           </h1>
           
-          <div className="flex flex-col md:flex-row gap-12 items-start md:items-end justify-between">
-            <p className="text-3xl font-bold uppercase tracking-tighter max-w-xl">
+          <div className="flex flex-col md:flex-row gap-8 items-start md:items-end justify-between">
+            <p className="text-2xl font-bold uppercase tracking-tighter max-w-xl">
               Professional on-demand pothole repair. 
               Rapid response dispatch. Targeted 60-min fix. 
               <span className="text-neon bg-ink px-1 mx-1 italic underline decoration-2 underline-offset-4">Weather & Traffic permitting.</span>
@@ -76,26 +76,26 @@ export function LandingPage({ onLogin, onReport, isLoading }: { onLogin: () => v
           </div>
         </div>
 
-        <div className="mt-24 grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
             { label: "Jobs Completed", val: "2,481+" },
             { label: "Avg. Response", val: "14m" },
             { label: "Success Rate", val: "99.8%" },
             { label: "Warranty", val: "12mo" }
           ].map((stat, i) => (
-            <div key={i} className="border-4 border-ink p-6 bg-paper group hover:bg-neon transition-colors">
+            <div key={i} className="border-4 border-ink p-4 bg-paper group hover:bg-neon transition-colors">
               <p className="text-[10px] font-black uppercase opacity-50 mb-1 group-hover:opacity-100">{stat.label}</p>
-              <p className="text-5xl font-black italic tracking-tighter">{stat.val}</p>
+              <p className="text-3xl font-black italic tracking-tighter">{stat.val}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* How It Works */}
-      <section className="py-32 px-12 bg-ink text-paper overflow-hidden relative">
-        <div className="flex flex-col md:flex-row gap-24 items-center">
-          <div className="flex-1 space-y-12 relative z-10">
-            <h2 className="text-8xl font-black uppercase tracking-tighter leading-none">
+      <section className="py-20 px-8 bg-ink text-paper overflow-hidden relative">
+        <div className="flex flex-col md:flex-row gap-16 items-center">
+          <div className="flex-1 space-y-8 relative z-10">
+            <h2 className="text-6xl font-black uppercase tracking-tighter leading-none">
               How the <br/><span className="text-neon">rapid fix</span> works
             </h2>
             <div className="space-y-12 max-w-lg">
