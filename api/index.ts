@@ -51,6 +51,50 @@ const sendSMS = async (to: string, message: string) => {
 
 app.use(express.json());
 
+app.get("/api/test-email", async (req, res) => {
+  const adminEmail = process.env.ADMIN_EMAIL || 'vik@quickfixpothole.com';
+  const resendApiKey = process.env.RESEND_API_KEY;
+
+  if (!resendApiKey) {
+    return res.status(500).json({ 
+      error: "RESEND_API_KEY is missing from Secrets.",
+      tip: "Go to Settings > Secrets and add 'RESEND_API_KEY'." 
+    });
+  }
+
+  try {
+    const resend = new Resend(resendApiKey);
+    const fromEmail = 'onboarding@resend.dev';
+    
+    console.log(`[TEST] Sending test email to: ${adminEmail}`);
+    
+    const result = await resend.emails.send({
+      from: `Quick Fix Test <${fromEmail}>`,
+      to: adminEmail,
+      subject: "Test Notification",
+      html: "<h1>Test Successful</h1><p>Your notification system is reaching the Resend API correctly.</p>"
+    });
+
+    if (result.error) {
+      console.error("[TEST] Resend Error:", result.error);
+      return res.status(400).json({ 
+        success: false, 
+        error: result.error,
+        tip: "If the error is 'Unauthorized', check your API key. If it is about the recipient, you are likely in Sandbox mode and must verify your domain or use your Resend account email."
+      });
+    }
+
+    res.json({ 
+      success: true, 
+      message: "Test email sent to " + adminEmail,
+      data: result.data,
+      note: "If you don't see the email, check your Spam folder and ensure you verify your domain in Resend for external emails."
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // API Routes
 app.get("/api/health", (req, res) => {
   res.json({ 
