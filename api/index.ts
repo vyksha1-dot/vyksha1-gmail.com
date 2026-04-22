@@ -74,7 +74,8 @@ app.post("/api/notify-report", async (req, res) => {
     const adminPhone = process.env.ADMIN_PHONE_NUMBER;
     const resendApiKey = process.env.RESEND_API_KEY;
 
-    console.log(`[NOTIFY] Data received for report: ${report?.id || 'unknown'}`);
+    console.log(`[NOTIFY] New Report #${report.id.slice(0, 8)} from ${report.reporterName || 'Anonymous'}`);
+    console.log(`[NOTIFY] Destination Email: ${adminEmail}`);
 
     let emailResult = { admin: null, customer: null };
     let smsResult = { admin: null, customer: null };
@@ -83,27 +84,37 @@ app.post("/api/notify-report", async (req, res) => {
     if (resendApiKey) {
       try {
         const resend = new Resend(resendApiKey);
-        const fromEmail = 'onboarding@resend.dev';
+        const fromEmail = 'onboarding@resend.dev'; // Resend Default
         
         const emailContent = `
-          <div style="font-family: sans-serif; border: 10px solid #000; padding: 20px; background: #fff;">
-            <h1 style="text-transform: uppercase; font-size: 30px; margin: 0; letter-spacing: -1px;">POTHOLE REPAIR REQUEST</h1>
-            <p style="font-weight:bold; text-transform:uppercase;">Ticket: #${report.id ? report.id.slice(0, 8) : 'N/A'}</p>
-            <hr style="border: 2px solid #000;" />
-            <p><strong>Reporter:</strong> ${report.reporterName || 'Anonymous'}</p>
-            <p><strong>Address:</strong> ${(report.location && report.location.address) || 'GPS Location'}</p>
-            <p><strong>Severity:</strong> ${report.severity || 'Medium'}</p>
-            <p><strong>Phone:</strong> ${report.reporterPhone || 'N/A'}</p>
-            <p><strong>Notes:</strong> ${report.description || 'No notes'}</p>
+          <div style="font-family: sans-serif; border: 10px solid #000; padding: 20px; background: #fff; max-width: 600px;">
+            <h1 style="text-transform: uppercase; font-size: 30px; margin: 0; letter-spacing: -1px; background: #000; color: #fff; padding: 10px;">🚨 NEW REPAIR REQUEST</h1>
+            <div style="padding: 20px; border: 2px solid #000; margin-top: 10px;">
+              <p style="font-size: 18px; font-weight: bold; border-bottom: 2px solid #000; padding-bottom: 5px;">TICKET: #${report.id.slice(0, 8)}</p>
+              <p><strong>CUSTOMER NAME:</strong> ${report.reporterName || 'STAY ANONYMOUS'}</p>
+              <p><strong>MOBILE NUMBER:</strong> <a href="tel:${report.reporterPhone}">${report.reporterPhone || 'NOT PROVIDED'}</a></p>
+              <p><strong>CUSTOMER EMAIL:</strong> ${report.reporterEmail || 'NOT PROVIDED'}</p>
+              <hr style="border: 1px dashed #000;" />
+              <p><strong>DISPATCH ADDRESS:</strong> ${report.location?.address || 'GPS COORDINATES ONLY'}</p>
+              <p><strong>COORDINATES:</strong> ${report.location?.latitude}, ${report.location?.longitude}</p>
+              <p><strong>SEVERITY:</strong> <span style="color: ${report.severity === 'high' ? 'red' : 'black'}; font-weight: bold;">${report.severity?.toUpperCase()}</span></p>
+              <p><strong>DETAILS:</strong> ${report.description || 'No additional notes.'}</p>
+            </div>
+            <div style="margin-top: 20px; text-align: center; font-size: 10px; opacity: 0.5;">
+              QUICK FIX INFRASTRUCTURE NOTIFICATION SYSTEM
+            </div>
           </div>
         `;
 
         emailResult.admin = await resend.emails.send({
-          from: `Quick Fix Alert <${fromEmail}>`,
+          from: `Quick Fix Dispatch <${fromEmail}>`,
           to: adminEmail,
-          subject: `🚨 NEW REPORT: ${report.reporterName || 'New Pothole'}`,
+          replyTo: report.reporterEmail || adminEmail,
+          subject: `🚨 NEW POTHOLE: ${report.reporterName || 'Urgent'} - #${report.id.slice(0, 8)}`,
           html: emailContent
         }) as any;
+
+        console.log(`[NOTIFY] Admin Email Sent. ID: ${JSON.stringify(emailResult.admin)}`);
 
         if (report.reporterEmail && report.reporterEmail.includes('@')) {
           emailResult.customer = await resend.emails.send({
@@ -154,6 +165,9 @@ app.post("/api/notify-status-change", async (req, res) => {
     const adminPhone = process.env.ADMIN_PHONE_NUMBER;
     const adminEmail = process.env.ADMIN_EMAIL || 'vik@quickfixpothole.com';
     const resendApiKey = process.env.RESEND_API_KEY;
+
+    console.log(`[STATUS] Changing status of #${report.id.slice(0, 8)} to ${newStatus}`);
+    console.log(`[STATUS] Admin Email: ${adminEmail}`);
 
     let smsResult = null;
     let emailResult = null;
