@@ -54,10 +54,21 @@ app.use(express.json());
 // API Routes
 app.get("/api/health", (req, res) => {
   res.json({ 
-    status: "ok", 
-    stripeConfigured: !!process.env.STRIPE_SECRET_KEY,
-    twilioConfigured: !!process.env.TWILIO_ACCOUNT_SID,
-    environment: process.env.NODE_ENV
+    status: "ok",
+    timestamp: new Date().toISOString(),
+    config: {
+      stripe: !!process.env.STRIPE_SECRET_KEY,
+      resend: !!process.env.RESEND_API_KEY,
+      adminEmail: process.env.ADMIN_EMAIL || "vik@quickfixpothole.com",
+      twilio: {
+        sidSet: !!process.env.TWILIO_ACCOUNT_SID,
+        sidPreview: process.env.TWILIO_ACCOUNT_SID ? `${process.env.TWILIO_ACCOUNT_SID.slice(0, 6)}...` : null,
+        tokenSet: !!process.env.TWILIO_AUTH_TOKEN,
+        fromNumber: process.env.TWILIO_PHONE_NUMBER || null,
+        adminNumber: process.env.ADMIN_PHONE_NUMBER || null,
+        isConfigured: !!(process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && process.env.TWILIO_PHONE_NUMBER)
+      }
+    }
   });
 });
 
