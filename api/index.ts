@@ -64,7 +64,7 @@ app.get("/api/test-email", async (req, res) => {
 
   try {
     const resend = new Resend(resendApiKey);
-    const fromEmail = 'onboarding@resend.dev';
+    const fromEmail = 'dispatch@quickfixpothole.com';
     
     console.log(`[TEST] Sending test email to: ${adminEmail}`);
     
@@ -139,7 +139,7 @@ app.post("/api/notify-report", async (req, res) => {
     if (resendApiKey) {
       try {
         const resend = new Resend(resendApiKey);
-        const fromEmail = 'onboarding@resend.dev'; // Resend Default
+        const fromEmail = 'dispatch@quickfixpothole.com'; 
         
         let attachments: any[] = [];
         let imageHtml = '';
@@ -308,7 +308,7 @@ app.post("/api/notify-status-change", async (req, res) => {
       try {
         const resend = new Resend(resendApiKey);
         emailResult = await resend.emails.send({
-          from: `Quick Fix <onboarding@resend.dev>`,
+          from: `Quick Fix <dispatch@quickfixpothole.com>`,
           to: report.reporterEmail,
           subject: `Status Update: Ticket #${report.id.slice(0, 8)}`,
           html: `

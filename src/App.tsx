@@ -109,7 +109,48 @@ export default function App() {
   const [reportSeverity, setReportSeverity] = useState<'low' | 'medium' | 'high'>('medium');
   const [reportDescription, setReportDescription] = useState('');
   const [reportMeasurements, setReportMeasurements] = useState<PotholeReport['measurements'] | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const fetchAddress = async (lat: number, lng: number) => {
+    try {
+      const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+      const data = await response.json();
+      if (data && data.display_name) {
+        setReportAddress(data.display_name);
+      }
+    } catch (error) {
+      console.error("Reverse geocoding error:", error);
+    }
+  };
+
+  const startGeolocation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser.");
+      return;
+    }
+
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        setReportLocation({ lat: latitude, lng: longitude });
+        fetchAddress(latitude, longitude);
+        setIsLocating(false);
+      },
+      (err) => {
+        console.error("Geolocation error:", err);
+        setIsLocating(false);
+        if (err.code === 1) alert("LOCATION DENIED: Please enable GPS for rapid dispatch.");
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  };
+
+  const handleOpenReportModal = () => {
+    setShowReportModal(true);
+    startGeolocation();
+  };
 
   useEffect(() => {
     async function testConnection() {
@@ -344,14 +385,9 @@ export default function App() {
       };
       reader.readAsDataURL(file);
 
-      // Get location
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (pos) => {
-            setReportLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-          },
-          (err) => console.error("Geolocation error:", err)
-        );
+      // Refresh location on capture if not already found
+      if (!reportLocation) {
+        startGeolocation();
       }
     }
   };
@@ -555,7 +591,7 @@ export default function App() {
         <div className="relative">
           <LandingPage 
             onLogin={handleLogin} 
-            onReport={() => setShowReportModal(true)} 
+            onReport={handleOpenReportModal} 
             isLoading={isLoggingIn} 
           />
           
@@ -566,6 +602,7 @@ export default function App() {
             onSubmit={submitReport}
             isReporting={isReporting}
             isValidatingImage={isValidatingImage}
+            isLocating={isLocating}
             reportImage={reportImage}
             reportLocation={reportLocation}
             reportAddress={reportAddress}
@@ -583,6 +620,7 @@ export default function App() {
             setReportPhone={setReportPhone}
             reportEmail={reportEmail}
             setReportEmail={setReportEmail}
+            onRefreshLocation={startGeolocation}
           />
         </div>
       </ErrorBoundary>
@@ -846,7 +884,7 @@ export default function App() {
 
           {/* Floating Action Button */}
           <button 
-            onClick={() => setShowReportModal(true)}
+            onClick={handleOpenReportModal}
             className="absolute bottom-12 right-12 w-20 h-20 bg-neon text-ink border-4 border-ink bold-shadow flex items-center justify-center hover:scale-105 transition-transform z-40"
           >
             <Plus className="w-10 h-10" />
@@ -897,6 +935,7 @@ export default function App() {
           onSubmit={submitReport}
           isReporting={isReporting}
           isValidatingImage={isValidatingImage}
+          isLocating={isLocating}
           reportImage={reportImage}
           reportLocation={reportLocation}
           reportAddress={reportAddress}
@@ -914,6 +953,7 @@ export default function App() {
           setReportPhone={setReportPhone}
           reportEmail={reportEmail}
           setReportEmail={setReportEmail}
+          onRefreshLocation={startGeolocation}
         />
 
         {/* Detail Modal */}

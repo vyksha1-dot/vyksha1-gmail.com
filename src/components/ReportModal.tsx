@@ -26,7 +26,9 @@ export function ReportModal({
   reportPhone,
   setReportPhone,
   reportEmail,
-  setReportEmail
+  setReportEmail,
+  isLocating,
+  onRefreshLocation
 }: any) {
   return (
     <AnimatePresence>
@@ -171,24 +173,43 @@ export function ReportModal({
 
               {/* Step 3: Location */}
               <div className="space-y-4">
-                <h4 className="text-xs font-black uppercase tracking-widest border-b-2 border-ink pb-2">Step 2: Dispatch Coordinates</h4>
+                <div className="flex items-center justify-between border-b-2 border-ink pb-2">
+                  <h4 className="text-xs font-black uppercase tracking-widest">Step 2: Dispatch Coordinates</h4>
+                  <button 
+                    onClick={onRefreshLocation}
+                    disabled={isLocating}
+                    className="p-1 hover:bg-muted border border-ink text-[8px] font-black uppercase flex items-center gap-1"
+                  >
+                    <Clock className={cn("w-3 h-3", isLocating && "animate-spin")} />
+                    {isLocating ? "Locating..." : "Refresh GPS"}
+                  </button>
+                </div>
                 <div className="flex items-start gap-4">
                   <div className={cn(
-                    "p-3 border-4 border-ink",
-                    reportLocation ? "bg-green-400" : "bg-muted animate-pulse"
+                    "p-3 border-4 border-ink transition-colors",
+                    reportLocation ? "bg-green-400" : isLocating ? "bg-neon animate-pulse" : "bg-muted"
                   )}>
-                    <MapPin className="w-6 h-6" />
+                    <MapPin className={cn("w-6 h-6", isLocating && "animate-bounce")} />
                   </div>
                   <div className="flex-1 space-y-2">
                     <input 
                       type="text"
                       value={reportAddress}
                       onChange={(e) => setReportAddress(e.target.value)}
-                      placeholder={reportLocation ? "Fetching address..." : "Enter location name or address"}
+                      placeholder={isLocating ? "GPS Handshake in progress..." : reportLocation ? "Verifying address..." : "Enter location or use GPS"}
                       className="w-full p-3 bg-muted border-2 border-ink font-bold uppercase text-xs"
                     />
-                    <p className="text-[9px] font-bold opacity-40 uppercase">
-                      {reportLocation ? `GPS: ${reportLocation.lat.toFixed(6)}, ${reportLocation.lng.toFixed(6)}` : 'Enable GPS for faster dispatch'}
+                    <p className="text-[9px] font-bold opacity-40 uppercase flex items-center gap-2">
+                      {isLocating ? (
+                        <>
+                          <span className="w-2 h-2 bg-neon rounded-full animate-ping" />
+                          Acquiring Satellites...
+                        </>
+                      ) : reportLocation ? (
+                        `GPS: ${reportLocation.lat.toFixed(6)}, ${reportLocation.lng.toFixed(6)}`
+                      ) : (
+                        'Enable GPS for 60-min priority dispatch'
+                      )}
                     </p>
                   </div>
                 </div>
