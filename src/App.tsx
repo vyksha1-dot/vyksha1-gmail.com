@@ -393,7 +393,7 @@ export default function App() {
     }
   };
 
-  const isAdmin = profile?.role === 'admin' || user?.email === (process.env.ADMIN_EMAIL || 'vyksha1@gmail.com');
+  const isAdmin = profile?.role === 'admin' || user?.email === (process.env.ADMIN_EMAIL || 'vik@quickfixpothole.com');
 
   const updateStatus = async (reportId: string, newStatus: PotholeReport['status']) => {
     if (!isAdmin) return;

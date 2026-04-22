@@ -70,7 +70,7 @@ app.post("/api/notify-report", async (req, res) => {
       return res.status(400).json({ error: "Missing report data" });
     }
 
-    const adminEmail = process.env.ADMIN_EMAIL || 'vyksha1@gmail.com';
+    const adminEmail = process.env.ADMIN_EMAIL || 'vik@quickfixpothole.com';
     const adminPhone = process.env.ADMIN_PHONE_NUMBER;
     const resendApiKey = process.env.RESEND_API_KEY;
 
@@ -93,6 +93,7 @@ app.post("/api/notify-report", async (req, res) => {
             <p><strong>Reporter:</strong> ${report.reporterName || 'Anonymous'}</p>
             <p><strong>Address:</strong> ${(report.location && report.location.address) || 'GPS Location'}</p>
             <p><strong>Severity:</strong> ${report.severity || 'Medium'}</p>
+            <p><strong>Phone:</strong> ${report.reporterPhone || 'N/A'}</p>
             <p><strong>Notes:</strong> ${report.description || 'No notes'}</p>
           </div>
         `;
@@ -124,7 +125,7 @@ app.post("/api/notify-report", async (req, res) => {
     }
 
     // 2. SMS via Twilio
-    const smsMessage = `🚨 QUICK FIX ALERT: New report from ${report.reporterName || 'Anonymous'}. Ticket #${report.id.slice(0, 8)}. Address: ${report.location?.address || 'GPS Location'}. Severity: ${report.severity.toUpperCase()}.`;
+    const smsMessage = `🚨 QUICK FIX ALERT: New report from ${report.reporterName || 'Anonymous'}. Ticket #${report.id.slice(0, 8)}. Address: ${report.location?.address || 'GPS Location'}. Severity: ${report.severity.toUpperCase()}. Phone: ${report.reporterPhone || 'N/A'}.`;
     
     if (adminPhone) {
       smsResult.admin = await sendSMS(adminPhone, smsMessage) as any;
@@ -151,7 +152,7 @@ app.post("/api/notify-status-change", async (req, res) => {
     }
 
     const adminPhone = process.env.ADMIN_PHONE_NUMBER;
-    const adminEmail = process.env.ADMIN_EMAIL || 'vyksha1@gmail.com';
+    const adminEmail = process.env.ADMIN_EMAIL || 'vik@quickfixpothole.com';
     const resendApiKey = process.env.RESEND_API_KEY;
 
     let smsResult = null;
