@@ -99,6 +99,11 @@ app.post("/api/notify-report", async (req, res) => {
               <p><strong>COORDINATES:</strong> ${report.location?.latitude}, ${report.location?.longitude}</p>
               <p><strong>SEVERITY:</strong> <span style="color: ${report.severity === 'high' ? 'red' : 'black'}; font-weight: bold;">${report.severity?.toUpperCase()}</span></p>
               <p><strong>DETAILS:</strong> ${report.description || 'No additional notes.'}</p>
+              ${report.imageUrl ? `
+                <div style="margin-top: 15px; border: 4px solid #000; overflow: hidden; background: #000;">
+                  <img src="${report.imageUrl}" style="width: 100%; display: block;" alt="Pothole Evidence" />
+                </div>
+              ` : ''}
             </div>
             <div style="margin-top: 20px; text-align: center; font-size: 10px; opacity: 0.5;">
               QUICK FIX INFRASTRUCTURE NOTIFICATION SYSTEM
