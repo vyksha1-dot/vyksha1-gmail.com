@@ -87,6 +87,8 @@ export default function App() {
   const [showQR, setShowQR] = useState(false);
   const [isPaying, setIsPaying] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [isSendingSMS, setIsSendingSMS] = useState(false);
+  const [smsMessageToSend, setSmsMessageToSend] = useState('');
   const [reportToDelete, setReportToDelete] = useState<string | null>(null);
   
   // Report Form State
@@ -448,6 +450,36 @@ export default function App() {
       setSelectedReport(prev => prev ? { ...prev, paymentStatus: newStatus } : null);
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `reports/${reportId}`);
+    }
+  };
+
+  const sendCustomSMS = async (report: PotholeReport) => {
+    if (!isAdmin || !smsMessageToSend.trim()) return;
+    
+    setIsSendingSMS(true);
+    try {
+      const response = await fetch('/api/send-custom-sms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          reportId: report.id,
+          customerPhone: report.reporterPhone,
+          message: smsMessageToSend
+        }),
+      });
+      
+      if (response.ok) {
+        alert("SUCCESS: Text message dispatched to customer.");
+        setSmsMessageToSend('');
+      } else {
+        const err = await response.json();
+        alert(`FAILED: ${err.error || "Could not send SMS"}`);
+      }
+    } catch (error) {
+      console.error("SMS error:", error);
+      alert("ERROR: System communication failure.");
+    } finally {
+      setIsSendingSMS(false);
     }
   };
 
@@ -1003,6 +1035,36 @@ export default function App() {
                             <Trash2 className="w-5 h-5" />
                             Delete Ticket
                           </button>
+                        </div>
+
+                        <div className="space-y-4 pt-6 border-t-2 border-ink">
+                          <p className="text-[10px] font-black uppercase opacity-50">Quick Message to Customer</p>
+                          <div className="space-y-2">
+                            <textarea
+                              value={smsMessageToSend}
+                              onChange={(e) => setSmsMessageToSend(e.target.value)}
+                              placeholder="Type a quick update..."
+                              className="w-full p-3 bg-muted border-2 border-ink font-bold text-xs h-20 uppercase"
+                            />
+                            <button
+                              disabled={isSendingSMS || !smsMessageToSend.trim()}
+                              onClick={() => sendCustomSMS(selectedReport)}
+                              className="w-full py-3 bg-ink text-paper font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 disabled:opacity-50"
+                            >
+                              {isSendingSMS ? "Sending..." : "Send SMS Update"}
+                            </button>
+                            <div className="flex gap-2">
+                              {["SQUAD ARRIVING IN 5 MINS", "REPAIR COMPLETED"].map(msg => (
+                                <button
+                                  key={msg}
+                                  onClick={() => setSmsMessageToSend(msg)}
+                                  className="text-[8px] font-black uppercase tracking-widest px-2 py-1 bg-muted border border-ink hover:bg-neon"
+                                >
+                                  {msg}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
                         </div>
 
                         <div className="space-y-4">

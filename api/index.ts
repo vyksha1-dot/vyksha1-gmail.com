@@ -233,6 +233,12 @@ app.post("/api/notify-status-change", async (req, res) => {
       smsResult = await sendSMS(report.reporterPhone, message);
     }
 
+    // SMS to Admin (Notify of state change)
+    if (adminPhone) {
+      const adminStatusMsg = `🛠 QUICK FIX: Status of Ticket #${report.id.slice(0, 8)} (${report.reporterName || 'Anonymous'}) changed to ${newStatus.toUpperCase()}.`;
+      await sendSMS(adminPhone, adminStatusMsg);
+    }
+
     // Email to Customer
     if (report.reporterEmail && resendApiKey) {
       try {
@@ -260,6 +266,30 @@ app.post("/api/notify-status-change", async (req, res) => {
   } catch (error: any) {
     console.error("[STATUS-NOTIFY] Global Error:", error);
     res.status(500).json({ error: "Internal error" });
+  }
+});
+
+app.post("/api/send-custom-sms", async (req, res) => {
+  try {
+    const { reportId, customerPhone, message } = req.body;
+    
+    if (!customerPhone || !message) {
+      return res.status(400).json({ error: "Missing phone or message" });
+    }
+
+    // Optional: Log which admin sent this if we had auth here
+    console.log(`[SMS] Sending custom message to Ticket #${reportId?.slice(0, 8)}`);
+
+    const result = await sendSMS(customerPhone, message);
+    
+    if (result) {
+      res.json({ success: true, sid: result.sid });
+    } else {
+      res.status(500).json({ error: "Failed to send SMS. Check Twilio logs." });
+    }
+  } catch (error: any) {
+    console.error("[CUSTOM-SMS] Global Error:", error);
+    res.status(500).json({ error: error.message });
   }
 });
 
