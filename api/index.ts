@@ -154,6 +154,7 @@ app.post("/api/notify-report", async (req, res) => {
           </div>
         `;
 
+        console.log(`[NOTIFY] Attempting Admin Email to: ${adminEmail}`);
         emailResult.admin = await resend.emails.send({
           from: `Quick Fix Dispatch <${fromEmail}>`,
           to: adminEmail,
@@ -163,9 +164,14 @@ app.post("/api/notify-report", async (req, res) => {
           attachments: attachments
         }) as any;
 
-        console.log(`[NOTIFY] Admin Email Sent. ID: ${JSON.stringify(emailResult.admin)}`);
+        if (emailResult.admin.error) {
+          console.error("[NOTIFY] Admin Email Failed:", emailResult.admin.error);
+        } else {
+          console.log(`[NOTIFY] Admin Email Sent Successfully. ID: ${emailResult.admin.data?.id}`);
+        }
 
         if (report.reporterEmail && report.reporterEmail.includes('@')) {
+          console.log(`[NOTIFY] Attempting Customer Email to: ${report.reporterEmail}`);
           emailResult.customer = await resend.emails.send({
             from: `Quick Fix <${fromEmail}>`,
             to: report.reporterEmail,
@@ -183,9 +189,12 @@ app.post("/api/notify-report", async (req, res) => {
             `,
             attachments: attachments
           }) as any;
+          if (emailResult.customer.error) {
+            console.error("[NOTIFY] Customer Email Failed:", emailResult.customer.error);
+          }
         }
       } catch (err: any) {
-        console.error("[NOTIFY] Email Error:", err.message);
+        console.error("[NOTIFY] Email sending exception:", err.message);
       }
     }
 

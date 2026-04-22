@@ -35,6 +35,12 @@ import { isAfterHours, getPrice } from './lib/pricing';
 import { cn } from './lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 
+declare global {
+  interface Window {
+    gtag?: (...args: any[]) => void;
+  }
+}
+
 // Fix Leaflet icon issue
 // @ts-ignore
 delete L.Icon.Default.prototype._getIconUrl;
@@ -359,7 +365,11 @@ export default function App() {
 
     setIsReporting(true);
     
-    const reportId = crypto.randomUUID();
+    // Support non-secure contexts or older browsers
+    const reportId = typeof crypto?.randomUUID === 'function' 
+      ? crypto.randomUUID() 
+      : Math.random().toString(36).substring(2, 11) + Date.now().toString(36);
+      
     const finalPrice = getPrice(reportSeverity);
 
     const newReport: PotholeReport = {
@@ -391,32 +401,60 @@ export default function App() {
     }
 
     try {
+      // 1. Save to Database First
       await setDoc(doc(db, 'reports', reportId), newReport);
       
-      // Notify Admin
-      fetch('/api/notify-report', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ report: newReport }),
-      }).catch(err => console.error("Notification failed:", err));
+      // 2. Notify Admin & Customer
+      try {
+        console.log("Notifying system of new report...");
+        const notifyRes = await fetch('/api/notify-report', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ report: newReport }),
+        });
+        
+        if (!notifyRes.ok) {
+          const errorData = await notifyRes.json().catch(() => ({}));
+          console.error("Notification API error:", errorData);
+          // We don't alert here because the report IS saved, we just couldn't email
+        }
+      } catch (notifyErr) {
+        console.error("Background notification failed:", notifyErr);
+      }
 
+      // Cleanup & UI Feedback
       setShowReportModal(false);
-      setReportImage(null);
-      setReportLocation(null);
-      setReportAddress('');
-      setReportDescription('');
-      setReportSeverity('medium');
-      setReportMeasurements(null);
-      setReportName('');
-      setReportEmail('');
-      setReportPhone('');
-      
+      resetReportForm(); 
+
+      // Google Ads Conversion Tracking
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', 'conversion', {
+          'send_to': 'AW-18105279174/conversion_event_placeholder', // You should replace this placeholder with your specific conversion label from Google Ads if provided.
+          'value': newReport.price,
+          'currency': 'USD',
+          'transaction_id': reportId
+        });
+      }
+
       alert("SUCCESS: Potential hazard reported. Our team has been notified and will review the submission shortly.");
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, 'reports');
     } finally {
       setIsReporting(false);
     }
+  };
+
+  const resetReportForm = () => {
+    setReportImage(null);
+    setReportLocation(null);
+    setReportAddress('');
+    setReportDescription('');
+    setReportSeverity('medium');
+    setReportMeasurements(null);
+    setReportName('');
+    setReportEmail('');
+    setReportPhone('');
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const isAdmin = profile?.role === 'admin' || user?.email === (process.env.ADMIN_EMAIL || 'vik@quickfixpothole.com');
