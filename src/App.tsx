@@ -400,7 +400,17 @@ export default function App() {
     
     try {
       await updateDoc(doc(db, 'reports', reportId), { status: newStatus });
-      setSelectedReport(prev => prev ? { ...prev, status: newStatus } : null);
+      const currentReport = reports.find(r => r.id === reportId);
+      if (currentReport) {
+        setSelectedReport({ ...currentReport, status: newStatus });
+        
+        // Notify of status change
+        fetch('/api/notify-status-change', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ report: currentReport, newStatus }),
+        }).catch(err => console.error("Status notification failed:", err));
+      }
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `reports/${reportId}`);
     }
