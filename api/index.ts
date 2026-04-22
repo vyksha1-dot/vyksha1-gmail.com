@@ -86,6 +86,42 @@ app.post("/api/notify-report", async (req, res) => {
         const resend = new Resend(resendApiKey);
         const fromEmail = 'onboarding@resend.dev'; // Resend Default
         
+        let attachments: any[] = [];
+        let imageHtml = '';
+
+        // If we have a base64 image, prepare it as an attachment
+        if (report.imageUrl && report.imageUrl.startsWith('data:')) {
+          try {
+            const matches = report.imageUrl.match(/^data:([A-Za-z-+/]+);base64,(.+)$/);
+            if (matches && matches.length === 3) {
+              const contentType = matches[1];
+              const base64Data = matches[2];
+              
+              attachments.push({
+                filename: 'pothole_evidence.jpg',
+                content: Buffer.from(base64Data, 'base64'),
+                contentType: contentType,
+                content_id: 'pothole_image'
+              });
+              
+              // Use CID to reference the attachment in HTML
+              imageHtml = `
+                <div style="margin-top: 15px; border: 4px solid #000; overflow: hidden; background: #000;">
+                  <img src="cid:pothole_image" style="width: 100%; display: block;" alt="Pothole Evidence" />
+                </div>
+              `;
+            }
+          } catch (imgErr) {
+            console.error("[NOTIFY] Image processing error:", imgErr);
+            // Fallback to direct embedding if CID fails, though CID is preferred
+            imageHtml = `
+              <div style="margin-top: 15px; border: 4px solid #000; overflow: hidden; background: #000;">
+                <img src="${report.imageUrl}" style="width: 100%; display: block;" alt="Pothole Evidence" />
+              </div>
+            `;
+          }
+        }
+        
         const emailContent = `
           <div style="font-family: sans-serif; border: 10px solid #000; padding: 20px; background: #fff; max-width: 600px;">
             <h1 style="text-transform: uppercase; font-size: 30px; margin: 0; letter-spacing: -1px; background: #000; color: #fff; padding: 10px;">🚨 NEW REPAIR REQUEST</h1>
@@ -99,11 +135,7 @@ app.post("/api/notify-report", async (req, res) => {
               <p><strong>COORDINATES:</strong> ${report.location?.latitude}, ${report.location?.longitude}</p>
               <p><strong>SEVERITY:</strong> <span style="color: ${report.severity === 'high' ? 'red' : 'black'}; font-weight: bold;">${report.severity?.toUpperCase()}</span></p>
               <p><strong>DETAILS:</strong> ${report.description || 'No additional notes.'}</p>
-              ${report.imageUrl ? `
-                <div style="margin-top: 15px; border: 4px solid #000; overflow: hidden; background: #000;">
-                  <img src="${report.imageUrl}" style="width: 100%; display: block;" alt="Pothole Evidence" />
-                </div>
-              ` : ''}
+              ${imageHtml}
             </div>
             <div style="margin-top: 20px; text-align: center; font-size: 10px; opacity: 0.5;">
               QUICK FIX INFRASTRUCTURE NOTIFICATION SYSTEM
@@ -116,7 +148,8 @@ app.post("/api/notify-report", async (req, res) => {
           to: adminEmail,
           replyTo: report.reporterEmail || adminEmail,
           subject: `🚨 NEW POTHOLE: ${report.reporterName || 'Urgent'} - #${report.id.slice(0, 8)}`,
-          html: emailContent
+          html: emailContent,
+          attachments: attachments
         }) as any;
 
         console.log(`[NOTIFY] Admin Email Sent. ID: ${JSON.stringify(emailResult.admin)}`);
@@ -127,12 +160,17 @@ app.post("/api/notify-report", async (req, res) => {
             to: report.reporterEmail,
             subject: `Request Received: Ticket #${report.id ? report.id.slice(0, 8) : 'N/A'}`,
             html: `
-              <div style="font-family: sans-serif; border: 10px solid #000; padding: 20px; background: #fff;">
-                <h1 style="text-transform: uppercase; font-size: 30px; margin: 0; letter-spacing: -1px;">WE GOT IT.</h1>
-                <p>Thanks ${report.reporterName}, we've received your repair request. Our team is heading to the coordinates now.</p>
-                ${emailContent}
+              <div style="font-family: sans-serif; border: 10px solid #000; padding: 20px; background: #fff; max-width: 600px;">
+                <h1 style="text-transform: uppercase; font-size: 30px; margin: 0; letter-spacing: -1px; background: #000; color: #fff; padding: 10px;">WE GOT IT.</h1>
+                <div style="padding: 20px; border: 2px solid #000; margin-top: 10px;">
+                  <p>Thanks <strong>${report.reporterName}</strong>, we've received your repair request. Our team is heading to your coordinates now.</p>
+                  <p style="font-size: 14px; font-weight: bold; border-bottom: 2px solid #000; padding-bottom: 5px;">YOUR TICKET: #${report.id.slice(0, 8)}</p>
+                  ${imageHtml}
+                  <p style="font-size: 10px; margin-top: 10px; opacity: 0.6;">*60-minute rapid response target active for your zone.</p>
+                </div>
               </div>
-            `
+            `,
+            attachments: attachments
           }) as any;
         }
       } catch (err: any) {

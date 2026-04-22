@@ -247,13 +247,35 @@ export default function App() {
     }
   };
 
+  const resizeImage = (base64Str: string, maxWidth = 600): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.src = base64Str;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', 0.7));
+      };
+    });
+  };
+
   const handleCapture = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setIsValidatingImage(true);
       const reader = new FileReader();
       reader.onloadend = async () => {
-        const base64Data = (reader.result as string).split(',')[1];
+        const rawBase64 = reader.result as string;
+        const base64Data = rawBase64.split(',')[1];
         
         try {
           // AI Validation
@@ -296,7 +318,8 @@ export default function App() {
 
           const result = JSON.parse(response.text);
           if (result.isPothole) {
-            setReportImage(reader.result as string);
+            const optimized = await resizeImage(rawBase64);
+            setReportImage(optimized);
             setReportMeasurements(result.measurements);
           } else {
             alert(`INVALID IMAGE: ${result.explanation}`);
@@ -304,8 +327,9 @@ export default function App() {
           }
         } catch (error) {
           console.error("AI Validation error:", error);
-          // Fallback: allow if AI fails (could be transient error)
-          setReportImage(reader.result as string);
+          // Fallback: allow if AI fails but resize anyway
+          const optimized = await resizeImage(rawBase64);
+          setReportImage(optimized);
         } finally {
           setIsValidatingImage(false);
         }
