@@ -71,8 +71,8 @@ app.get("/api/test-email", async (req, res) => {
     const result = await resend.emails.send({
       from: `Quick Fix Test <${fromEmail}>`,
       to: adminEmail,
-      subject: "Test Notification",
-      html: "<h1>Test Successful</h1><p>Your notification system is reaching the Resend API correctly.</p>"
+      subject: "Domain Verification Test",
+      html: `<h1>Verification Successful</h1><p>Your notification system is fully configured to use <b>${fromEmail}</b>.</p><p>Sending to: ${adminEmail}</p>`
     });
 
     if (result.error) {
@@ -250,7 +250,8 @@ app.post("/api/notify-report", async (req, res) => {
     }
 
     if (report.reporterPhone) {
-      const customerMsg = `QUICK FIX: We received your pothole report (Ticket #${report.id.slice(0, 8)}). A technician is being dispatched. Track here: ${process.env.APP_URL || 'Check App'}`;
+      const appUrl = process.env.APP_URL || 'https://quickfixpothole.com';
+      const customerMsg = `QUICK FIX: We received your pothole report (Ticket #${report.id.slice(0, 8)}). A technician is being dispatched. Track here: ${appUrl}`;
       smsResult.customer = await sendSMS(report.reporterPhone, customerMsg) as any;
     }
 
@@ -370,6 +371,8 @@ app.post("/api/create-checkout-session", async (req, res) => {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
+    const appUrl = process.env.APP_URL || 'https://quickfixpothole.com';
+
     const session = await stripeClient.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: [
@@ -387,8 +390,8 @@ app.post("/api/create-checkout-session", async (req, res) => {
       ],
       mode: "payment",
       customer_email: userEmail,
-      success_url: `${process.env.APP_URL || 'http://localhost:3000'}/?payment=success&reportId=${reportId}`,
-      cancel_url: `${process.env.APP_URL || 'http://localhost:3000'}/?payment=cancel&reportId=${reportId}`,
+      success_url: `${appUrl}/?payment=success&reportId=${reportId}`,
+      cancel_url: `${appUrl}/?payment=cancel&reportId=${reportId}`,
       metadata: { reportId: reportId },
     });
 
