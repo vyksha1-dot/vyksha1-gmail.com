@@ -10,6 +10,7 @@
     <link rel="apple-touch-icon" href="/logo.svg" />
     <meta name="apple-mobile-web-app-title" content="QuickFix" />
     <title>Quick Fix Pothole | Professional 60-Min Pavement Repair</title>
+    <script async custom-element="amp-analytics" src="https://cdn.ampproject.org/v0/amp-analytics-0.1.js"></script>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=AW-18105279174"></script>
     <script>
@@ -21,6 +22,28 @@
     </script>
   </head>
   <body>
+    <amp-analytics type="gtag" data-credentials="include">
+      <script type="application/json">
+        {
+          "vars": {
+            "gtag_id": "AW-18105279174",
+            "config": {
+              "AW-18105279174": { "groups": "default" }
+            }
+          },
+          "triggers": {
+            "C_cipmj6vYu9Q": {
+              "on": "visible",
+              "vars": {
+                "event_name": "conversion",
+                "transaction_id": "",
+                "send_to": ["AW-18105279174/DUhNCMmPp6AcEMbForlD"]
+              }
+            }
+          }
+        }
+      </script>
+    </amp-analytics>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
