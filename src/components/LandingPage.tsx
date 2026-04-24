@@ -13,7 +13,11 @@ export function LandingPage({ onLogin, onReport, isLoading }: { onLogin: () => v
         <div className="flex items-center gap-3">
           <Logo className="w-20 h-20 md:w-32 md:h-32" />
         </div>
-        <div className="flex gap-8 items-center">
+        <div className="flex gap-4 md:gap-8 items-center">
+          <a href="tel:502-489-7790" className="hidden sm:flex items-center gap-2 px-3 py-1 bg-ink text-neon border-2 border-ink font-black uppercase text-[10px] tracking-widest hover:scale-105 transition-transform">
+             <div className="w-2 h-2 bg-neon animate-pulse rounded-full" />
+             502-489-7790
+          </a>
           <button 
             onClick={onLogin} 
             disabled={isLoading}
@@ -66,6 +70,15 @@ export function LandingPage({ onLogin, onReport, isLoading }: { onLogin: () => v
                   <div className="w-3 h-3 bg-ink animate-pulse rounded-full" />
                   Live in Louisville, KY
                 </div>
+                <a 
+                  href="tel:502-489-7790" 
+                  className="flex items-center gap-3 px-4 py-2 border-4 border-ink bg-neon font-black uppercase text-xl italic tracking-tighter hover:scale-105 transition-transform"
+                >
+                  <div className="w-4 h-4 bg-ink flex items-center justify-center rounded-sm">
+                     <div className="w-1 h-1 bg-neon animate-ping" />
+                  </div>
+                  502-489-7790
+                </a>
                 <div className="flex items-center gap-2 px-2 py-1 border-2 border-ink bg-yellow-400 font-black uppercase text-[8px]">
                   <AlertTriangle className="w-3 h-3" />
                   Advisory: Rain, Roadblocks, or Heavy Traffic may delay service
@@ -218,8 +231,9 @@ export function LandingPage({ onLogin, onReport, isLoading }: { onLogin: () => v
           <div className="space-y-6 text-right">
             <h4 className="text-[10px] font-black uppercase tracking-[0.4em] opacity-30">Connect</h4>
             <div className="flex flex-col gap-4 font-black uppercase text-xs items-end">
-              <a href="#" className="hover:text-neon">vik@quickfixpothole.com</a>
-              <a href="#" className="hover:text-neon">Dispatch Hotline</a>
+              <a href="mailto:vik@quickfixpothole.com" className="hover:text-neon text-paper transition-colors">vik@quickfixpothole.com</a>
+              <a href="tel:502-489-7790" className="text-neon text-xl font-black italic tracking-tighter">502-489-7790</a>
+              <span className="text-[8px] font-black opacity-40 uppercase tracking-widest">24/7 Dispatch Hotline</span>
             </div>
           </div>
         </div>
