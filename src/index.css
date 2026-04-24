@@ -11,6 +11,16 @@
     0% { transform: translateX(0); }
     100% { transform: translateX(-50%); }
   }
+
+  @keyframes scan {
+    0% { top: 0%; }
+    100% { top: 100%; }
+  }
+
+  @keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
 }
 
 @layer base {
@@ -48,5 +58,9 @@
 
   .animate-marquee-slower {
     animation: marquee 30s linear infinite;
+  }
+
+  .animate-spin-slow {
+    animation: spin-slow 12s linear infinite;
   }
 }

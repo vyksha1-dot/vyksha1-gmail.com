@@ -21,6 +21,7 @@ export interface PotholeReport {
     widthInches: number;
     lengthInches: number;
     depthInches: number;
+    size?: 'small' | 'medium' | 'large';
   };
 }
 

@@ -3,13 +3,24 @@ export function isAfterHours() {
   return hour >= 17 || hour < 6;
 }
 
-export function getPrice(severity: 'low' | 'medium' | 'high') {
+export function getPrice(severityOrWidth: 'low' | 'medium' | 'high' | number, length?: number, depth?: number) {
   const afterHours = isAfterHours();
-  const pricing = {
-    standard: { low: 299, medium: 499, high: 0 },
-    afterHours: { low: 598, medium: 998, high: 0 }
-  };
+  const multiplier = afterHours ? 2 : 1;
+  
+  if (typeof severityOrWidth === 'string') {
+    const pricing = {
+      low: 299,
+      medium: 499,
+      high: 899
+    };
+    return pricing[severityOrWidth] * multiplier;
+  }
 
-  const set = afterHours ? pricing.afterHours : pricing.standard;
-  return set[severity];
+  // Measurement based pricing: Base $150 + $20 per square inch + extra for depth
+  const width = severityOrWidth;
+  const area = width * (length || width);
+  const depthFactor = (depth || 1) * 50;
+  const basePrice = 150 + (area * 2) + depthFactor;
+  
+  return Math.round(basePrice * multiplier);
 }

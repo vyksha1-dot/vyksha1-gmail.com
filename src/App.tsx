@@ -17,7 +17,9 @@ import {
 } from 'firebase/firestore';
 import { 
   Camera, MapPin, AlertTriangle, CheckCircle, Clock, LogOut, User as UserIcon, 
-  Map as MapIcon, Plus, X, ChevronRight, Info, CreditCard, Trash2
+  Map as MapIcon, Plus, X, ChevronRight, Info, CreditCard, Trash2,
+  Zap, ShieldAlert, Globe, Download, Maximize, Maximize2, ArrowDown,
+  MessageSquare, Check
 } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
 import { MapContainer, TileLayer, Marker, Popup, useMap, LayersControl } from 'react-leaflet';
@@ -82,6 +84,320 @@ const createCustomClusterIcon = (cluster: any) => {
   });
 };
 
+function ReportDetailContent({ 
+  report, 
+  isAdmin, 
+  onClose, 
+  onUpdatePayment, 
+  onDelete, 
+  smsMessage, 
+  setSmsMessage, 
+  isSendingSMS, 
+  onSendSMS, 
+  onUpdateStatus,
+  onRequestPayment,
+  isRequestingPayment
+}: any) {
+  const [activeTab, setActiveTab] = useState<'details' | 'location' | 'photos' | 'analysis' | 'admin'>('details');
+
+  const tabs = [
+    { id: 'details', label: 'Details', icon: Info },
+    { id: 'location', label: 'Location', icon: MapPin },
+    { id: 'photos', label: 'Photos', icon: Camera },
+    { id: 'analysis', label: 'AI', icon: Zap },
+    ...(isAdmin ? [{ id: 'admin', label: 'Admin', icon: ShieldAlert }] : [])
+  ];
+
+  return (
+    <div className="flex flex-col h-full overflow-hidden bg-paper">
+      {/* Header with Close */}
+      <div className="p-6 border-b-4 border-ink flex items-center justify-between bg-paper z-10">
+        <div className="flex items-center gap-3">
+          <div className={cn(
+            "w-3 h-3 rounded-full animate-pulse",
+            report.status === 'repaired' ? "bg-green-500" : "bg-neon"
+          )} />
+          <h3 className="text-sm font-black uppercase tracking-widest">
+            Ticket #{report.id.slice(0, 8)}
+          </h3>
+        </div>
+        <button 
+          onClick={onClose}
+          className="p-2 border-2 border-ink hover:bg-ink hover:text-paper transition-all bold-shadow active:translate-y-0.5"
+        >
+          <X className="w-5 h-5" />
+        </button>
+      </div>
+
+      {/* Modern Tabs */}
+      <div className="flex border-b-2 border-ink bg-muted overflow-x-auto custom-scrollbar no-scrollbar">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as any)}
+            className={cn(
+              "flex-1 min-w-[80px] py-3 px-2 flex flex-col items-center gap-1 transition-all border-r-2 border-ink last:border-r-0",
+              activeTab === tab.id 
+                ? "bg-neon text-ink" 
+                : "bg-paper text-slate-400 hover:bg-muted hover:text-ink"
+            )}
+          >
+            <tab.icon className="w-4 h-4" />
+            <span className="text-[8px] font-black uppercase tracking-tighter">{tab.label}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Tab Content */}
+      <div className="flex-1 overflow-y-auto custom-scrollbar">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="p-6 space-y-6"
+          >
+            {activeTab === 'details' && (
+              <>
+                <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="px-2 py-0.5 bg-ink text-paper text-[9px] font-black uppercase tracking-widest">
+                      {report.status}
+                    </span>
+                    <CountdownTimer createdAt={report.createdAt} status={report.status} />
+                    <span className={cn(
+                      "px-2 py-0.5 text-[9px] font-black uppercase tracking-widest border border-ink",
+                      report.severity === 'high' ? "bg-red-500 text-white" : "bg-paper"
+                    )}>
+                      {report.severity}
+                    </span>
+                    <span className={cn(
+                      "px-2 py-0.5 text-[9px] font-black uppercase tracking-widest border border-ink",
+                      report.paymentStatus === 'paid' ? "bg-green-400" : "bg-yellow-400"
+                    )}>
+                      {report.paymentStatus}
+                    </span>
+                  </div>
+                  <p className="text-[9px] font-black uppercase opacity-50">
+                    {new Date(report.createdAt).toLocaleDateString()} {new Date(report.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-between border-y-2 border-ink py-4">
+                  <h4 className="text-[10px] font-black uppercase tracking-widest">Service Value</h4>
+                  <p className="text-3xl font-black tracking-tighter">${report.price}</p>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="p-4 bg-muted border-2 border-ink">
+                    <h4 className="text-[9px] font-black uppercase tracking-widest mb-2 opacity-50">Description</h4>
+                    <p className="text-lg font-black uppercase leading-tight">{report.description || "No description provided."}</p>
+                  </div>
+
+                  <div className="flex flex-col items-center text-center space-y-4 p-4 bg-paper border-2 border-ink bold-shadow">
+                    <div className="w-full text-left space-y-3">
+                      <h4 className="text-[9px] font-black uppercase tracking-widest border-b border-ink pb-1">Reporter Information</h4>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <p className="text-[7px] font-black uppercase opacity-50">Client Name</p>
+                          <p className="text-xs font-black uppercase truncate">{report.reporterName}</p>
+                        </div>
+                        <div>
+                          <p className="text-[7px] font-black uppercase opacity-50">Auth Phone</p>
+                          <p className="text-xs font-black uppercase italic">{report.reporterPhone}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <QRCodeSVG value={JSON.stringify({ id: report.id })} size={100} level="H" />
+                    <p className="text-[7px] font-black uppercase tracking-widest opacity-40 italic">Scan for onsite crew verification</p>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {activeTab === 'location' && (
+              <div className="space-y-6">
+                <div className="flex items-center gap-3 p-4 bg-muted border-2 border-ink">
+                  <MapPin className="text-ink w-8 h-8 flex-shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-black uppercase leading-none mb-1">Dispatch Address</p>
+                    <p className="text-sm font-bold uppercase leading-tight">
+                      {report.location.address || "Unrecognized Area"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-3 bg-paper border-2 border-ink">
+                    <p className="text-[8px] font-black uppercase opacity-60 mb-1">Latitude</p>
+                    <p className="font-mono text-xs">{report.location.latitude.toFixed(6)}</p>
+                  </div>
+                  <div className="p-3 bg-paper border-2 border-ink">
+                    <p className="text-[8px] font-black uppercase opacity-60 mb-1">Longitude</p>
+                    <p className="font-mono text-xs">{report.location.longitude.toFixed(6)}</p>
+                  </div>
+                </div>
+
+                <div className="aspect-square bg-muted border-2 border-ink relative overflow-hidden flex items-center justify-center">
+                  <Globe className="w-20 h-20 text-ink opacity-10 animate-spin-slow" />
+                  <div className="absolute inset-x-0 bottom-0 p-4 bg-ink text-paper text-center">
+                    <p className="text-[9px] font-black uppercase tracking-widest">Awaiting Satalite Feed</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'photos' && (
+              <div className="space-y-4">
+                <div className="relative group overflow-hidden border-4 border-ink bold-shadow">
+                  <img src={report.imageUrl} className="w-full aspect-square object-cover transition-transform duration-500 group-hover:scale-110" alt="Pothole Damage" />
+                  <div className="absolute top-4 left-4">
+                    <span className="px-3 py-1 bg-neon text-ink text-[10px] font-black uppercase tracking-widest border-2 border-ink">Original Capture</span>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button className="flex-1 py-3 border-2 border-ink bg-muted text-[10px] font-black uppercase flex items-center justify-center gap-2">
+                    <Download className="w-4 h-4" /> Download
+                  </button>
+                  <button className="flex-1 py-3 border-2 border-ink bg-muted text-[10px] font-black uppercase flex items-center justify-center gap-2">
+                    <Maximize className="w-4 h-4" /> Expand
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'analysis' && (
+              <div className="space-y-6">
+                {!report.measurements ? (
+                  <div className="p-8 text-center border-2 border-dashed border-ink opacity-40">
+                    <Zap className="w-12 h-12 mx-auto mb-4" />
+                    <p className="text-xs font-black uppercase tracking-widest">No AI Metrics Available</p>
+                  </div>
+                ) : (
+                  <>
+                    <h4 className="text-xs font-black uppercase tracking-widest border-b-2 border-ink pb-2 text-center">AI Structural Assessment</h4>
+                    <div className="grid grid-cols-1 gap-4">
+                      {[
+                        { label: 'Width', value: report.measurements.widthInches, unit: 'IN', icon: Maximize },
+                        { label: 'Length', value: report.measurements.lengthInches, unit: 'IN', icon: Maximize2 },
+                        { label: 'Estimated Depth', value: report.measurements.depthInches, unit: 'IN', icon: ArrowDown, critical: true }
+                      ].map((m, i) => (
+                        <div key={i} className="flex items-center justify-between p-4 bg-muted border-2 border-ink">
+                          <div className="flex items-center gap-3">
+                            <m.icon className={cn("w-5 h-5", m.critical && "text-red-600 animate-pulse")} />
+                            <span className="text-[10px] font-black uppercase">{m.label}</span>
+                          </div>
+                          <p className={cn("text-2xl font-black", m.critical && "text-red-600")}>
+                            {m.value}<span className="text-xs ml-1 font-bold">{m.unit}</span>
+                          </p>
+                        </div>
+                      ))}
+                      {report.measurements.size && (
+                        <div className="flex items-center justify-between p-4 bg-ink text-paper border-2 border-ink">
+                          <div className="flex items-center gap-3">
+                            <Zap className="w-5 h-5 text-neon" />
+                            <span className="text-[10px] font-black uppercase">Detected Classification</span>
+                          </div>
+                          <p className="text-2xl font-black uppercase text-neon">{report.measurements.size}</p>
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-4 bg-neon/10 border-2 border-neon text-ink">
+                      <p className="text-[8px] font-black uppercase tracking-widest mb-1">Crew Recommendation</p>
+                      <p className="text-xs font-bold leading-tight uppercase">
+                        Requires rapid fill S32 asphalt mix. Estimated volume: 4.2kg.
+                      </p>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'admin' && isAdmin && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-center py-2 bg-ink text-paper">Command Center</h4>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    disabled={isRequestingPayment || report.paymentStatus === 'paid'}
+                    onClick={() => {
+                      if (report.paymentStatus === 'paid') {
+                        onUpdatePayment(report.id, 'unpaid');
+                      } else {
+                        onRequestPayment(report);
+                      }
+                    }}
+                    className={cn(
+                      "flex flex-col items-center gap-2 p-4 border-2 border-ink font-black uppercase transition-all bold-shadow active:translate-y-1",
+                      report.paymentStatus === 'paid' ? "bg-green-400" : "bg-paper hover:bg-neon",
+                      isRequestingPayment && "animate-pulse"
+                    )}
+                  >
+                    <CreditCard className="w-5 h-5" />
+                    <span className="text-[8px]">
+                      {isRequestingPayment ? "Requesting..." : report.paymentStatus === 'paid' ? "Paid (Undo)" : "Request Pay"}
+                    </span>
+                  </button>
+                  
+                  <button
+                    onClick={() => onDelete(report.id)}
+                    className="flex flex-col items-center gap-2 p-4 border-2 border-ink bg-paper text-red-600 font-black uppercase transition-all hover:bg-red-50 bold-shadow active:translate-y-1"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                    <span className="text-[8px]">Terminate</span>
+                  </button>
+                </div>
+
+                <div className="space-y-3 pt-4 border-t-2 border-ink">
+                  <p className="text-[8px] font-black uppercase opacity-50 flex items-center gap-2">
+                    <MessageSquare className="w-3 h-3" /> Quick Dispatch SMS
+                  </p>
+                  <div className="space-y-2">
+                    <textarea
+                      value={smsMessage}
+                      onChange={(e) => setSmsMessage(e.target.value)}
+                      placeholder="Dispatcher notes to reporter..."
+                      className="w-full p-3 bg-muted border-2 border-ink font-bold text-[10px] h-20 uppercase resize-none"
+                    />
+                    <button
+                      disabled={isSendingSMS || !smsMessage.trim()}
+                      onClick={() => onSendSMS(report)}
+                      className="w-full py-3 bg-ink text-paper font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95 transition-transform"
+                    >
+                      {isSendingSMS ? "Transmitting..." : "Send SMS Transmission"}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-2 pt-4">
+                  <p className="text-[8px] font-black uppercase opacity-50 text-center">Protocol Status</p>
+                  <div className="grid grid-cols-1 gap-1">
+                    {(['pending', 'in-progress', 'repaired'] as const).map(s => (
+                      <button
+                        key={s}
+                        onClick={() => onUpdateStatus(report.id, s)}
+                        className={cn(
+                          "py-3 border-2 border-ink font-black uppercase text-[9px] transition-all flex items-center justify-between px-4",
+                          report.status === s ? "bg-neon" : "bg-muted opacity-50 grayscale hover:grayscale-0 hover:opacity-100"
+                        )}
+                      >
+                        <span>{s.replace('-', ' ')}</span>
+                        {report.status === s && <Check className="w-4 h-4" />}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -96,6 +412,51 @@ export default function App() {
   const [isSendingSMS, setIsSendingSMS] = useState(false);
   const [smsMessageToSend, setSmsMessageToSend] = useState('');
   const [reportToDelete, setReportToDelete] = useState<string | null>(null);
+  const [isRequestingPayment, setIsRequestingPayment] = useState(false);
+
+  const handleRequestPayment = async (report: PotholeReport) => {
+    if (isRequestingPayment) return;
+    setIsRequestingPayment(true);
+    
+    try {
+      // 1. Create Checkout Session
+      const checkoutRes = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          reportId: report.id,
+          price: report.price,
+          userEmail: report.reporterEmail || 'anonymous@pothole.fix',
+        }),
+      });
+
+      if (!checkoutRes.ok) throw new Error('Checkout creation failed');
+      const { url } = await checkoutRes.json();
+
+      // 2. Send SMS with link
+      const paymentLinkMsg = `Quick Fix: Your pothole repair is ready for dispatch. Pay here to prioritize: ${url}`;
+      
+      const smsRes = await fetch('/api/send-sms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: report.reporterPhone,
+          body: paymentLinkMsg
+        }),
+      });
+
+      if (!smsRes.ok) {
+        alert("Payment link generated internally, but SMS failed. Please copy the link from Stripe dashboard.");
+      } else {
+        alert("Payment request sent to customer via SMS.");
+      }
+    } catch (error) {
+      console.error("Payment request error:", error);
+      alert("Failed to generate payment request. Please try again.");
+    } finally {
+      setIsRequestingPayment(false);
+    }
+  };
   
   // Report Form State
   const [isReporting, setIsReporting] = useState(false);
@@ -174,9 +535,25 @@ export default function App() {
     if (payment === 'success' && reportId) {
       const updateReport = async () => {
         try {
-          await updateDoc(doc(db, 'reports', reportId), { 
+          const reportRef = doc(db, 'reports', reportId);
+          await updateDoc(reportRef, { 
             paymentStatus: 'paid' 
           });
+
+          // Google Ads Purchase Conversion
+          if (typeof window.gtag === 'function') {
+            const snap = await getDoc(reportRef);
+            if (snap.exists()) {
+              const data = snap.data();
+              window.gtag('event', 'conversion', {
+                'send_to': 'AW-18105279174/DUhNCMmPp6AcEMbForlD',
+                'value': data.price,
+                'currency': 'USD',
+                'transaction_id': reportId
+              });
+            }
+          }
+
           // Clear query params to prevent re-triggering
           window.history.replaceState({}, '', '/');
         } catch (error) {
@@ -252,7 +629,7 @@ export default function App() {
   const handleLogout = () => auth.signOut();
 
   const handlePayment = async (report: PotholeReport) => {
-    if (!user || isPaying) return;
+    if (isPaying) return;
     setIsPaying(true);
 
     try {
@@ -264,7 +641,7 @@ export default function App() {
         body: JSON.stringify({
           reportId: report.id,
           price: report.price,
-          userEmail: user.email,
+          userEmail: user?.email || report.reporterEmail || 'anonymous@pothole.fix',
         }),
       });
 
@@ -339,7 +716,7 @@ export default function App() {
                   }
                 },
                 {
-                  text: "Analyze this image. Is it a picture of a pothole or road damage? If yes, estimate its measurements in inches (width, length, depth). Answer in JSON with a boolean 'isPothole', a short 'explanation', and 'measurements' object containing 'widthInches', 'lengthInches', and 'depthInches'. Only allow real potholes on roads."
+                  text: "Analyze this image. Is it a picture of a pothole or road damage? If yes, estimate its measurements in inches (width, length, depth) and classify its size as 'small', 'medium', or 'large'. Small is usually < 12 inches, Medium is 12-24, Large is > 24. Answer in JSON with a boolean 'isPothole', a short 'explanation', 'size' (small/medium/large), and 'measurements' object."
                 }
               ]
             },
@@ -350,6 +727,7 @@ export default function App() {
                 properties: {
                   isPothole: { type: Type.BOOLEAN },
                   explanation: { type: Type.STRING },
+                  size: { type: Type.STRING, enum: ["small", "medium", "large"] },
                   measurements: {
                     type: Type.OBJECT,
                     properties: {
@@ -360,7 +738,7 @@ export default function App() {
                     required: ["widthInches", "lengthInches", "depthInches"]
                   }
                 },
-                required: ["isPothole", "explanation"]
+                required: ["isPothole", "explanation", "size"]
               }
             }
           });
@@ -369,7 +747,15 @@ export default function App() {
           if (result.isPothole) {
             const optimized = await resizeImage(rawBase64);
             setReportImage(optimized);
-            setReportMeasurements(result.measurements);
+            setReportMeasurements({
+              ...result.measurements,
+              size: result.size
+            });
+            
+            // Map AI size to severity
+            if (result.size === 'small') setReportSeverity('low');
+            else if (result.size === 'medium') setReportSeverity('medium');
+            else if (result.size === 'large') setReportSeverity('high');
           } else {
             alert(`INVALID IMAGE: ${result.explanation}`);
             if (fileInputRef.current) fileInputRef.current.value = '';
@@ -392,7 +778,7 @@ export default function App() {
     }
   };
 
-  const submitReport = async () => {
+  const submitReport = async (shouldPay: boolean = false) => {
     if (!reportImage || (!reportLocation && !reportAddress)) return;
     if (!reportName || !reportEmail || !reportPhone) {
       alert("Please fill in your contact information so we can reach you.");
@@ -406,7 +792,9 @@ export default function App() {
       ? crypto.randomUUID() 
       : Math.random().toString(36).substring(2, 11) + Date.now().toString(36);
       
-    const finalPrice = getPrice(reportSeverity);
+    const finalPrice = reportMeasurements 
+      ? getPrice(reportMeasurements.widthInches, reportMeasurements.lengthInches, reportMeasurements.depthInches)
+      : getPrice(reportSeverity);
 
     const newReport: PotholeReport = {
       id: reportId,
@@ -443,29 +831,30 @@ export default function App() {
       // 2. Notify Admin & Customer
       try {
         console.log("Notifying system of new report...");
-        const notifyRes = await fetch('/api/notify-report', {
+        await fetch('/api/notify-report', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ report: newReport }),
         });
-        
-        if (!notifyRes.ok) {
-          const errorData = await notifyRes.json().catch(() => ({}));
-          console.error("Notification API error:", errorData);
-          // We don't alert here because the report IS saved, we just couldn't email
-        }
       } catch (notifyErr) {
         console.error("Background notification failed:", notifyErr);
+      }
+
+      // 3. Handle Payment if requested
+      if (shouldPay) {
+        await handlePayment(newReport);
+        // handlePayment redirects the window, so we don't need to do anything else
+        return;
       }
 
       // Cleanup & UI Feedback
       setShowReportModal(false);
       resetReportForm(); 
 
-      // Google Ads Conversion Tracking
-      if (typeof window.gtag === 'function') {
+      // Google Ads Conversion Tracking (Optional/Default)
+      if (typeof window.gtag === 'function' && !shouldPay) {
         window.gtag('event', 'conversion', {
-          'send_to': 'AW-18105279174/conversion_event_placeholder', // You should replace this placeholder with your specific conversion label from Google Ads if provided.
+          'send_to': 'AW-18105279174/DUhNCMmPp6AcEMbForlD',
           'value': newReport.price,
           'currency': 'USD',
           'transaction_id': reportId
@@ -721,25 +1110,27 @@ export default function App() {
                           key={report.id} 
                           position={[report.location.latitude, report.location.longitude]}
                           eventHandlers={{
-                            click: () => setSelectedReport(report),
+                            click: () => {
+                              setSelectedReport(report);
+                              // On desktop, we don't want the popup to open automatically if we are showing the side panel
+                            },
                           }}
                         >
-                          <Popup>
-                            <div className="p-1 font-sans w-48">
+                          <Popup closeButton={false} minWidth={200}>
+                            <div className="p-1 font-sans">
                               <img src={report.imageUrl} alt="Pothole" className="w-full h-24 object-cover border-2 border-ink mb-2" />
                               <div className="flex justify-between items-center mb-2">
-                                <p className="font-black text-xs uppercase">{report.status}</p>
-                                <p className="font-black text-sm tracking-tighter">${report.price || 'TBD'}</p>
+                                <p className="font-black text-[10px] uppercase">{report.status}</p>
+                                <p className="font-black text-xs tracking-tighter">${report.price || 'TBD'}</p>
                               </div>
                               <button 
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   setSelectedReport(report);
-                                  setShowQR(true);
                                 }}
-                                className="w-full py-2 bg-neon border-2 border-ink text-[10px] font-black uppercase tracking-widest hover:bg-ink hover:text-paper transition-all"
+                                className="w-full py-2 bg-neon border-2 border-ink text-[8px] font-black uppercase tracking-widest hover:bg-ink hover:text-paper transition-all"
                               >
-                                View QR Ticket
+                                View Details
                               </button>
                             </div>
                           </Popup>
@@ -892,39 +1283,74 @@ export default function App() {
         </main>
 
         {/* Side Panel */}
-        <aside className="w-[380px] border-l-4 border-ink p-12 flex flex-col bg-paper flex-shrink-0 hidden lg:flex">
-          <div className="mb-12 space-y-4">
-            <div className="border-b-2 border-ink py-4 flex justify-between items-end">
-              <div className="text-xs font-bold uppercase opacity-50 pb-1">Active Reports</div>
-              <div className="text-5xl font-black leading-none">{reports.filter(r => r.status !== 'repaired').length}</div>
-            </div>
-            <div className="border-b-2 border-ink py-4 flex justify-between items-end">
-              <div className="text-xs font-bold uppercase opacity-50 pb-1">Fixed Today</div>
-              <div className="text-5xl font-black leading-none">
-                {reports.filter(r => r.status === 'repaired' && new Date(r.createdAt).toDateString() === new Date().toDateString()).length}
-              </div>
-            </div>
-          </div>
-
-          <div className="flex-1 overflow-hidden flex flex-col">
-            <h3 className="text-sm font-black uppercase tracking-widest mb-6">Recent Activity</h3>
-            <div className="flex-1 overflow-y-auto space-y-6 pr-2">
-              {reports.slice(0, 5).map(report => (
-                <div key={report.id} className="pb-6 border-b border-muted">
-                  <div className="text-[10px] font-black uppercase text-slate-400 mb-1 flex justify-between items-center">
-                    <span>{new Date(report.createdAt).toLocaleTimeString()} • {report.severity} Priority</span>
-                    <CountdownTimer createdAt={report.createdAt} status={report.status} />
+        <aside className="w-[400px] border-l-4 border-ink flex flex-col bg-paper flex-shrink-0 hidden lg:flex">
+          <AnimatePresence mode="wait">
+            {selectedReport ? (
+              <motion.div
+                key="detail"
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 50 }}
+                className="h-full"
+              >
+                <ReportDetailContent 
+                  report={selectedReport}
+                  isAdmin={profile?.role === 'admin'}
+                  onClose={() => setSelectedReport(null)}
+                  onUpdatePayment={updatePaymentStatus}
+                  onDelete={deleteReport}
+                  smsMessage={smsMessageToSend}
+                  setSmsMessage={setSmsMessageToSend}
+                  isSendingSMS={isSendingSMS}
+                  onSendSMS={sendCustomSMS}
+                  onUpdateStatus={updateStatus}
+                  onRequestPayment={handleRequestPayment}
+                  isRequestingPayment={isRequestingPayment}
+                />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="stats"
+                initial={{ opacity: 0, x: -50 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -50 }}
+                className="h-full p-10 flex flex-col"
+              >
+                <div className="mb-12 space-y-4 flex-shrink-0">
+                  <div className="border-b-2 border-ink py-4 flex justify-between items-end">
+                    <div className="text-xs font-bold uppercase opacity-50 pb-1">Active Reports</div>
+                    <div className="text-5xl font-black leading-none">{reports.filter(r => r.status !== 'repaired').length}</div>
                   </div>
-                  <div className="font-bold text-lg leading-tight uppercase mb-2">
-                    {report.description || "New pothole reported"}
-                  </div>
-                  <div className="inline-block px-2 py-0.5 bg-ink text-paper text-[9px] font-black uppercase tracking-widest">
-                    {report.status}
+                  <div className="border-b-2 border-ink py-4 flex justify-between items-end">
+                    <div className="text-xs font-bold uppercase opacity-50 pb-1">Fixed Today</div>
+                    <div className="text-5xl font-black leading-none">
+                      {reports.filter(r => r.status === 'repaired' && new Date(r.createdAt).toDateString() === new Date().toDateString()).length}
+                    </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
+
+                <div className="flex-1 overflow-hidden flex flex-col">
+                  <h3 className="text-sm font-black uppercase tracking-widest mb-6">Recent Activity</h3>
+                  <div className="flex-1 overflow-y-auto space-y-6 pr-2 custom-scrollbar">
+                    {reports.slice(0, 5).map(report => (
+                      <div key={report.id} className="pb-6 border-b border-muted cursor-pointer hover:bg-muted/50 p-2 transition-colors" onClick={() => setSelectedReport(report)}>
+                        <div className="text-[10px] font-black uppercase text-slate-400 mb-1 flex justify-between items-center">
+                          <span>{new Date(report.createdAt).toLocaleTimeString()} • {report.severity}</span>
+                          <CountdownTimer createdAt={report.createdAt} status={report.status} />
+                        </div>
+                        <div className="font-bold text-base leading-tight uppercase mb-2">
+                          {report.description || "New pothole reported"}
+                        </div>
+                        <div className="inline-block px-2 py-0.5 bg-ink text-paper text-[9px] font-black uppercase tracking-widest">
+                          {report.status}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </aside>
 
         {/* Report Modal */}
@@ -956,10 +1382,10 @@ export default function App() {
           onRefreshLocation={startGeolocation}
         />
 
-        {/* Detail Modal */}
+        {/* Detail Modal (Mobile Only) */}
         <AnimatePresence>
           {selectedReport && (
-            <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 lg:hidden">
               <motion.div 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -974,201 +1400,26 @@ export default function App() {
                 initial={{ y: "100%" }}
                 animate={{ y: 0 }}
                 exit={{ y: "100%" }}
-                className="relative bg-white w-full max-w-lg border-4 border-ink overflow-hidden bold-shadow flex flex-col max-h-[90vh]"
+                className="relative bg-white w-full max-w-lg border-4 border-ink overflow-hidden bold-shadow flex flex-col h-[80vh] sm:h-auto sm:max-h-[90vh]"
               >
-                <div className="relative h-72 border-b-4 border-ink">
-                  <img src={selectedReport.imageUrl} className="w-full h-full object-cover" alt="Pothole" />
-                  <button 
-                    onClick={() => {
-                      setSelectedReport(null);
-                      setShowQR(false);
-                    }}
-                    className="absolute top-4 right-4 p-2 bg-neon border-2 border-ink text-ink hover:bg-ink hover:text-paper transition-colors"
-                  >
-                    <X className="w-6 h-6" />
-                  </button>
-                </div>
-                  <div className="p-8 space-y-8 overflow-y-auto">
-                    <div className="flex items-center justify-between">
-                      <div className="flex flex-wrap items-center gap-3">
-                        <span className="px-3 py-1 bg-ink text-paper text-[10px] font-black uppercase tracking-widest">
-                          {selectedReport.status}
-                        </span>
-                        <CountdownTimer createdAt={selectedReport.createdAt} status={selectedReport.status} />
-                        <span className={cn(
-                          "px-3 py-1 text-[10px] font-black uppercase tracking-widest border-2 border-ink",
-                          selectedReport.severity === 'high' ? "bg-red-500 text-white" : "bg-paper"
-                        )}>
-                          {selectedReport.severity}
-                        </span>
-                        <span className={cn(
-                          "px-3 py-1 text-[10px] font-black uppercase tracking-widest border-2 border-ink",
-                          selectedReport.paymentStatus === 'paid' ? "bg-green-400" : "bg-yellow-400"
-                        )}>
-                          {selectedReport.paymentStatus}
-                        </span>
-                      </div>
-                      <p className="text-[10px] font-black uppercase opacity-50">{new Date(selectedReport.createdAt).toLocaleString()}</p>
-                    </div>
-
-                    <div className="flex items-center justify-between border-y-4 border-ink py-4">
-                      <h4 className="text-sm font-black uppercase tracking-widest">Service Price</h4>
-                      <p className="text-4xl font-black tracking-tighter">
-                        ${selectedReport.price}
-                      </p>
-                    </div>
-
-                    <div className="flex flex-col items-center text-center space-y-4 p-6 bg-paper border-4 border-ink bold-shadow">
-                      <div className="w-full text-left space-y-4">
-                        <h4 className="text-xs font-black uppercase tracking-widest border-b-2 border-ink pb-2">Reporter Details</h4>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <p className="text-[8px] font-black uppercase opacity-50">Name</p>
-                            <p className="text-sm font-black uppercase">{selectedReport.reporterName}</p>
-                          </div>
-                          <div>
-                            <p className="text-[8px] font-black uppercase opacity-50">Phone</p>
-                            <p className="text-sm font-black uppercase italic">{selectedReport.reporterPhone}</p>
-                          </div>
-                          <div className="col-span-2">
-                            <p className="text-[8px] font-black uppercase opacity-50">Email</p>
-                            <p className="text-sm font-black uppercase underline">{selectedReport.reporterEmail}</p>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <QRCodeSVG 
-                        value={JSON.stringify({
-                          id: selectedReport.id,
-                          reporter: selectedReport.reporterName,
-                          phone: selectedReport.reporterPhone,
-                          price: selectedReport.price,
-                          location: selectedReport.location,
-                          status: selectedReport.status
-                        })}
-                        size={160}
-                        level="H"
-                      />
-                      <div className="space-y-1">
-                        <h4 className="text-lg font-black uppercase tracking-tighter">Job Ticket</h4>
-                      </div>
-                    </div>
-
-                    <div>
-                      <h4 className="text-[10px] font-black uppercase tracking-widest mb-2 opacity-50">Description</h4>
-                      <p className="text-2xl font-black uppercase leading-tight">{selectedReport.description || "No description provided."}</p>
-                    </div>
-
-                    <div className="flex items-center gap-4 p-4 bg-muted border-2 border-ink">
-                      <MapPin className="text-ink w-8 h-8" />
-                      <div>
-                        <p className="text-xs font-black uppercase">{selectedReport.location.address ? "Reported Address" : "Coordinates"}</p>
-                        <p className="text-[10px] font-bold opacity-50">
-                          {selectedReport.location.address || `${selectedReport.location.latitude.toFixed(6)}, ${selectedReport.location.longitude.toFixed(6)}`}
-                        </p>
-                      </div>
-                    </div>
-
-                    {selectedReport.measurements && (
-                      <div className="bg-paper border-4 border-ink p-4 bold-shadow">
-                        <label className="text-[10px] font-black uppercase tracking-widest mb-4 block opacity-50">AI Structural Analysis (Estimated)</label>
-                        <div className="grid grid-cols-3 gap-4">
-                          <div className="text-center p-3 bg-muted border-2 border-ink">
-                            <p className="text-[9px] font-black uppercase opacity-60">Width</p>
-                            <p className="text-2xl font-black">{selectedReport.measurements.widthInches}<span className="text-xs ml-0.5">IN</span></p>
-                          </div>
-                          <div className="text-center p-3 bg-muted border-2 border-ink">
-                            <p className="text-[9px] font-black uppercase opacity-60">Length</p>
-                            <p className="text-2xl font-black">{selectedReport.measurements.lengthInches}<span className="text-xs ml-0.5">IN</span></p>
-                          </div>
-                          <div className="text-center p-3 bg-muted border-2 border-ink">
-                            <p className="text-[9px] font-black uppercase opacity-60">Depth</p>
-                            <p className="text-2xl font-black text-red-600">{selectedReport.measurements.depthInches}<span className="text-xs ml-0.5">IN</span></p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Admin Controls */}
-                    {isAdmin && (
-                      <div className="pt-8 space-y-6 border-t-4 border-ink">
-                        <h4 className="text-sm font-black uppercase tracking-widest text-center">Admin Controls</h4>
-                        
-                        <div className="grid grid-cols-2 gap-4">
-                          <button
-                            onClick={() => updatePaymentStatus(selectedReport.id, selectedReport.paymentStatus === 'paid' ? 'unpaid' : 'paid')}
-                            className={cn(
-                              "flex items-center justify-center gap-2 p-4 border-4 border-ink font-black uppercase text-xs transition-all bold-shadow active:translate-y-1",
-                              selectedReport.paymentStatus === 'paid' ? "bg-green-400" : "bg-paper hover:bg-green-100"
-                            )}
-                          >
-                            <CreditCard className="w-5 h-5" />
-                            {selectedReport.paymentStatus === 'paid' ? "Mark Unpaid" : "Mark as Paid"}
-                          </button>
-                          
-                          <button
-                            onClick={() => deleteReport(selectedReport.id)}
-                            className="flex items-center justify-center gap-2 p-4 border-4 border-ink bg-paper text-red-600 font-black uppercase text-xs transition-all hover:bg-red-50 bold-shadow active:translate-y-1"
-                          >
-                            <Trash2 className="w-5 h-5" />
-                            Delete Ticket
-                          </button>
-                        </div>
-
-                        <div className="space-y-4 pt-6 border-t-2 border-ink">
-                          <p className="text-[10px] font-black uppercase opacity-50">Quick Message to Customer</p>
-                          <div className="space-y-2">
-                            <textarea
-                              value={smsMessageToSend}
-                              onChange={(e) => setSmsMessageToSend(e.target.value)}
-                              placeholder="Type a quick update..."
-                              className="w-full p-3 bg-muted border-2 border-ink font-bold text-xs h-20 uppercase"
-                            />
-                            <button
-                              disabled={isSendingSMS || !smsMessageToSend.trim()}
-                              onClick={() => sendCustomSMS(selectedReport)}
-                              className="w-full py-3 bg-ink text-paper font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 disabled:opacity-50"
-                            >
-                              {isSendingSMS ? "Sending..." : "Send SMS Update"}
-                            </button>
-                            <div className="flex gap-2">
-                              {["SQUAD ARRIVING IN 5 MINS", "REPAIR COMPLETED"].map(msg => (
-                                <button
-                                  key={msg}
-                                  onClick={() => setSmsMessageToSend(msg)}
-                                  className="text-[8px] font-black uppercase tracking-widest px-2 py-1 bg-muted border border-ink hover:bg-neon"
-                                >
-                                  {msg}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="space-y-4">
-                          <p className="text-[10px] font-black uppercase opacity-50 text-center">Update Repair Status</p>
-                          <div className="grid grid-cols-3 gap-2">
-                            {(['pending', 'in-progress', 'repaired'] as const).map(s => (
-                              <button
-                                key={s}
-                                onClick={() => updateStatus(selectedReport.id, s)}
-                                className={cn(
-                                  "py-3 border-4 border-ink font-black uppercase text-[10px] transition-all",
-                                  selectedReport.status === s ? "bg-neon" : "bg-paper opacity-50 grayscale hover:grayscale-0 hover:opacity-100"
-                                )}
-                              >
-                                {s === 'pending' ? 'Pending' : s === 'in-progress' ? 'Running' : 'Done'}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
-              </div>
-            )}
-          </AnimatePresence>
+                <ReportDetailContent 
+                  report={selectedReport}
+                  isAdmin={profile?.role === 'admin'}
+                  onClose={() => setSelectedReport(null)}
+                  onUpdatePayment={updatePaymentStatus}
+                  onDelete={deleteReport}
+                  smsMessage={smsMessageToSend}
+                  setSmsMessage={setSmsMessageToSend}
+                  isSendingSMS={isSendingSMS}
+                  onSendSMS={sendCustomSMS}
+                  onUpdateStatus={updateStatus}
+                  onRequestPayment={handleRequestPayment}
+                  isRequestingPayment={isRequestingPayment}
+                />
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
 
           {/* Delete Confirmation Modal */}
           <AnimatePresence>

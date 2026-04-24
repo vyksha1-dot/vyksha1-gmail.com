@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Camera, MapPin, AlertTriangle, Clock } from 'lucide-react';
+import { X, Camera, MapPin, AlertTriangle, Clock, Zap } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { getPrice } from '../lib/pricing';
 
@@ -101,38 +101,62 @@ export function ReportModal({
               {/* Step 1: Photos */}
               <div className="space-y-4">
                 <h4 className="text-xs font-black uppercase tracking-widest border-b-2 border-ink pb-2">Step 1: Visual Evidence</h4>
-                <div className="relative aspect-video bg-muted border-4 border-dashed border-ink/20 flex flex-col items-center justify-center overflow-hidden">
+                <div 
+                  className={cn(
+                    "relative aspect-video bg-muted border-4 border-dashed border-ink/20 flex flex-col items-center justify-center overflow-hidden cursor-pointer",
+                    isValidatingImage && "cursor-wait"
+                  )}
+                  onClick={() => {
+                    if (!isValidatingImage) {
+                      if (fileInputRef.current) fileInputRef.current.value = '';
+                      fileInputRef.current?.click();
+                    }
+                  }}
+                >
                   {reportImage ? (
                     <>
                       <img src={reportImage} className="w-full h-full object-cover" alt="Capture" referrerPolicy="no-referrer" />
+                      <div className="absolute inset-0 bg-ink/10 group-hover:bg-ink/20 transition-colors flex items-center justify-center opacity-0 hover:opacity-100">
+                        <Camera className="w-12 h-12 text-paper drop-shadow-lg" />
+                      </div>
                       <button 
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           if (fileInputRef.current) fileInputRef.current.value = '';
                           onCapture({ target: { files: [] } } as any);
                         }}
-                        className="absolute top-2 right-2 p-2 bg-red-500 text-paper border-2 border-ink hover:bg-ink transition-colors"
+                        className="absolute top-2 right-2 p-2 bg-red-500 text-paper border-2 border-ink hover:bg-ink transition-colors z-10"
                       >
                         <X className="w-4 h-4" />
                       </button>
                     </>
                   ) : (
-                    <button 
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={isValidatingImage}
-                      className="flex flex-col items-center gap-2 group transition-all"
-                    >
+                    <div className="flex flex-col items-center gap-2 group transition-all">
                       <div className="p-4 bg-neon border-4 border-ink bold-shadow group-hover:scale-110 transition-transform">
-                        {isValidatingImage ? (
-                          <div className="w-8 h-8 border-4 border-ink/30 border-t-ink rounded-full animate-spin" />
-                        ) : (
-                          <Camera className="w-8 h-8" />
-                        )}
+                        <Camera className="w-8 h-8" />
                       </div>
                       <span className="font-black uppercase text-[10px] tracking-widest">
                         {isValidatingImage ? 'Analyzing Infrastructure...' : 'Capture Photo'}
                       </span>
-                    </button>
+                    </div>
                   )}
+
+                  {/* AI Scanning Animation Overlay */}
+                  {isValidatingImage && (
+                    <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-ink/40 backdrop-blur-[2px]">
+                      <div className="w-full h-1 bg-neon absolute top-0 animate-[scan_2s_linear_infinite]" />
+                      <div className="p-4 bg-neon border-4 border-ink flex items-center gap-3 animate-bounce">
+                        <Zap className="w-6 h-6 animate-pulse" />
+                        <span className="font-black uppercase text-xs">AI Scanning...</span>
+                      </div>
+                      <div className="mt-4 flex gap-1">
+                        {[0, 1, 2].map((i) => (
+                          <div key={i} className="w-2 h-2 bg-neon rounded-full animate-ping" style={{ animationDelay: `${i * 0.2}s` }} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   <input 
                     type="file" 
                     ref={fileInputRef} 
@@ -161,8 +185,8 @@ export function ReportModal({
                       <p className="text-xl font-black">{reportMeasurements.depthInches}"</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-[8px] opacity-50 font-bold uppercase">Repair Tier</p>
-                      <p className="text-xl font-black text-neon">{reportMeasurements.confidence > 0.8 ? 'Verified' : 'Review'}</p>
+                      <p className="text-[8px] opacity-50 font-bold uppercase">Detected Size</p>
+                      <p className="text-xl font-black text-neon capitalize">{reportMeasurements.size || '---'}</p>
                     </div>
                   </div>
                   <p className="text-[10px] font-bold uppercase opacity-50 leading-tight">
@@ -248,27 +272,53 @@ export function ReportModal({
               </div>
 
               {/* Submit */}
-              <div className="bg-yellow-100 p-4 border-4 border-yellow-400 font-bold uppercase text-[9px] leading-tight">
-                BY SUBMITTING THIS REPORT, YOU AGRE TO THE DISPATCH TERMS. OUR SQUAD TARGETS A 60-MINUTE ON-SITE ARRIVAL. AN EMAIL QUOTE WILL BE SENT IMMEDIATELY AFTER SITE INSPECTION.
+              <div className="bg-yellow-100 p-4 border-4 border-yellow-400 font-bold uppercase text-[9px] leading-tight space-y-2">
+                <p>BY SUBMITTING THIS REPORT, YOU AGREE TO THE DISPATCH TERMS. OUR SQUAD TARGETS A 60-MINUTE ON-SITE ARRIVAL.</p>
+                <div className="flex items-center justify-between pt-2 border-t border-yellow-400/30">
+                  <span className="text-[10px] font-black">Estimated Repair Cost:</span>
+                  <span className="text-xl font-black">${reportMeasurements ? getPrice(reportMeasurements.widthInches, reportMeasurements.lengthInches, reportMeasurements.depthInches) : '---'}</span>
+                </div>
               </div>
             </div>
 
             <div className="p-6 bg-paper border-t-4 border-ink mt-auto">
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-[10px] font-black uppercase opacity-40">ESTIMATED RESPONSE</span>
-                <span className="text-xl font-black italic tracking-tighter">~14 MINUTES</span>
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                <div className="flex flex-col">
+                  <span className="text-[8px] font-black uppercase opacity-40">TARGET ARRIVAL</span>
+                  <span className="text-lg font-black italic tracking-tighter">~14 MINS</span>
+                </div>
+                <div className="flex flex-col text-right">
+                  <span className="text-[8px] font-black uppercase opacity-40">SERVICE TOTAL</span>
+                  <span className="text-lg font-black tracking-tighter text-green-600">
+                    ${reportMeasurements ? getPrice(reportMeasurements.widthInches, reportMeasurements.lengthInches, reportMeasurements.depthInches) : 'TBD'}
+                  </span>
+                </div>
               </div>
-              <button
-                disabled={!reportImage || (!reportLocation && !reportAddress) || isReporting}
-                onClick={onSubmit}
-                className="w-full py-4 bg-neon text-ink border-4 border-ink font-black uppercase tracking-tighter text-xl bold-shadow disabled:opacity-50 disabled:shadow-none flex items-center justify-center gap-2 transition-all active:translate-x-1 active:translate-y-1 active:shadow-none"
-              >
-                {isReporting ? (
-                  <div className="w-6 h-6 border-4 border-ink/30 border-t-ink rounded-full animate-spin" />
-                ) : (
-                  <>CONFIRM QUICK FIX</>
-                )}
-              </button>
+
+              <div className="flex flex-col gap-2">
+                <button
+                  disabled={!reportImage || (!reportLocation && !reportAddress) || isReporting}
+                  onClick={() => onSubmit(true)}
+                  className="w-full py-4 bg-neon text-ink border-4 border-ink font-black uppercase tracking-tighter text-xl bold-shadow disabled:opacity-50 disabled:shadow-none flex flex-col items-center justify-center transition-all active:translate-x-1 active:translate-y-1 active:shadow-none"
+                >
+                  {isReporting ? (
+                    <div className="w-6 h-6 border-4 border-ink/30 border-t-ink rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <span>PAY & DISPATCH SQUAD</span>
+                      <span className="text-[10px] opacity-60">IMMEDIATE 60-MIN PRIORITY</span>
+                    </>
+                  )}
+                </button>
+                
+                <button
+                  disabled={!reportImage || (!reportLocation && !reportAddress) || isReporting}
+                  onClick={() => onSubmit(false)}
+                  className="w-full py-2 bg-paper text-ink border-2 border-ink font-black uppercase tracking-tighter text-[10px] disabled:opacity-50 hover:bg-muted transition-colors"
+                >
+                  {isReporting ? 'Processing...' : 'Standard Report (No Dispatch)'}
+                </button>
+              </div>
             </div>
           </motion.div>
         </div>

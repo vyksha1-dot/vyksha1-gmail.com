@@ -52,7 +52,7 @@ const sendSMS = async (to: string, message: string) => {
 app.use(express.json());
 
 app.get("/api/test-email", async (req, res) => {
-  const adminEmail = process.env.ADMIN_EMAIL || 'vik@quickfixpothole.com';
+  const adminEmail = process.env.ADMIN_EMAIL || 'vykha1@gmail.com';
   const resendApiKey = process.env.RESEND_API_KEY;
 
   if (!resendApiKey) {
@@ -103,7 +103,7 @@ app.get("/api/health", (req, res) => {
     config: {
       stripe: !!process.env.STRIPE_SECRET_KEY,
       resend: !!process.env.RESEND_API_KEY,
-      adminEmail: process.env.ADMIN_EMAIL || "vik@quickfixpothole.com",
+      adminEmail: process.env.ADMIN_EMAIL || "vykha1@gmail.com",
       twilio: {
         sidSet: !!process.env.TWILIO_ACCOUNT_SID,
         sidPreview: process.env.TWILIO_ACCOUNT_SID ? `${process.env.TWILIO_ACCOUNT_SID.slice(0, 6)}...` : null,
@@ -125,7 +125,7 @@ app.post("/api/notify-report", async (req, res) => {
       return res.status(400).json({ error: "Missing report data" });
     }
 
-    const adminEmail = process.env.ADMIN_EMAIL || 'vik@quickfixpothole.com';
+    const adminEmail = process.env.ADMIN_EMAIL || 'vykha1@gmail.com';
     const adminPhone = process.env.ADMIN_PHONE_NUMBER;
     const resendApiKey = process.env.RESEND_API_KEY;
 
