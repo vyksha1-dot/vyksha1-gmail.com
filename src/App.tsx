@@ -1235,7 +1235,8 @@ export default function App() {
                             <th className="p-4 border-r border-paper/20">Price</th>
                             <th className="p-4 border-r border-paper/20">Reporter</th>
                             <th className="p-4 border-r border-paper/20">Contact</th>
-                            <th className="p-4">Date</th>
+                            <th className="p-4 border-r border-paper/20">Date</th>
+                            <th className="p-4">Actions</th>
                           </tr>
                         </thead>
                         <tbody className="font-bold text-xs uppercase">
@@ -1261,7 +1262,18 @@ export default function App() {
                                 <div className="text-[10px] opacity-50">{report.reporterEmail}</div>
                               </td>
                               <td className="p-4 border-r-2 border-ink font-mono text-[10px]">{report.reporterPhone}</td>
-                              <td className="p-4">{new Date(report.createdAt).toLocaleDateString()}</td>
+                              <td className="p-4 border-r-2 border-ink">{new Date(report.createdAt).toLocaleDateString()}</td>
+                              <td className="p-4">
+                                <button 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    deleteReport(report.id);
+                                  }}
+                                  className="p-2 border-2 border-ink bg-red-500 text-paper hover:bg-ink transition-colors bold-shadow active:translate-y-0.5"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </td>
                             </tr>
                           ))}
                         </tbody>
@@ -1295,7 +1307,7 @@ export default function App() {
               >
                 <ReportDetailContent 
                   report={selectedReport}
-                  isAdmin={profile?.role === 'admin'}
+                  isAdmin={isAdmin}
                   onClose={() => setSelectedReport(null)}
                   onUpdatePayment={updatePaymentStatus}
                   onDelete={deleteReport}
@@ -1404,7 +1416,7 @@ export default function App() {
               >
                 <ReportDetailContent 
                   report={selectedReport}
-                  isAdmin={profile?.role === 'admin'}
+                  isAdmin={isAdmin}
                   onClose={() => setSelectedReport(null)}
                   onUpdatePayment={updatePaymentStatus}
                   onDelete={deleteReport}
