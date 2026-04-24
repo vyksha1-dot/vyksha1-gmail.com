@@ -286,7 +286,7 @@ export function ReportModal({
               <div className="grid grid-cols-2 gap-3 mb-4">
                 <div className="flex flex-col">
                   <span className="text-[8px] font-black uppercase opacity-40">TARGET ARRIVAL</span>
-                  <span className="text-lg font-black italic tracking-tighter">~14 MINS</span>
+                  <span className="text-lg font-black italic tracking-tighter">~30 MINS</span>
                 </div>
                 <div className="flex flex-col text-right">
                   <span className="text-[8px] font-black uppercase opacity-40">SERVICE TOTAL (EST)</span>

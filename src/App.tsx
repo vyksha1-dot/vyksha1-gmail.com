@@ -252,7 +252,12 @@ function ReportDetailContent({
             {activeTab === 'photos' && (
               <div className="space-y-4">
                 <div className="relative group overflow-hidden border-4 border-ink bold-shadow">
-                  <img src={report.imageUrl} className="w-full aspect-square object-cover transition-transform duration-500 group-hover:scale-110" alt="Pothole Damage" />
+                  <img 
+                    src={report.imageUrl} 
+                    className="w-full aspect-square object-cover transition-transform duration-500 group-hover:scale-110" 
+                    alt="Pothole Damage" 
+                    referrerPolicy="no-referrer"
+                  />
                   <div className="absolute top-4 left-4">
                     <span className="px-3 py-1 bg-neon text-ink text-[10px] font-black uppercase tracking-widest border-2 border-ink">Original Capture</span>
                   </div>
@@ -1229,6 +1234,7 @@ export default function App() {
                       <table className="w-full text-left border-collapse">
                         <thead>
                           <tr className="bg-ink text-paper uppercase text-[10px] font-black tracking-widest">
+                            <th className="p-4 border-r border-paper/20">Photo</th>
                             <th className="p-4 border-r border-paper/20">ID</th>
                             <th className="p-4 border-r border-paper/20">Status</th>
                             <th className="p-4 border-r border-paper/20">Payment</th>
@@ -1242,6 +1248,16 @@ export default function App() {
                         <tbody className="font-bold text-xs uppercase">
                           {reports.map(report => (
                             <tr key={report.id} className="border-b-2 border-ink hover:bg-muted cursor-pointer" onClick={() => setSelectedReport(report)}>
+                              <td className="p-2 border-r-2 border-ink">
+                                <div className="w-12 h-12 border-2 border-ink bg-muted overflow-hidden">
+                                  <img 
+                                    src={report.imageUrl} 
+                                    className="w-full h-full object-cover" 
+                                    alt="Thumb" 
+                                    referrerPolicy="no-referrer"
+                                  />
+                                </div>
+                              </td>
                               <td className="p-4 border-r-2 border-ink font-mono">{report.id.slice(0, 8)}...</td>
                               <td className="p-4 border-r-2 border-ink">
                                 <span className={cn("px-2 py-0.5 text-[9px] font-black", STATUS_COLORS[report.status])}>

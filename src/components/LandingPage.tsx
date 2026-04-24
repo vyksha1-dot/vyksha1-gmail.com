@@ -78,7 +78,7 @@ export function LandingPage({ onLogin, onReport, isLoading }: { onLogin: () => v
         <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
             { label: "Jobs Completed", val: "2,481+" },
-            { label: "Avg. Response", val: "14m" },
+            { label: "Avg. Response", val: "30m" },
             { label: "Success Rate", val: "99.8%" },
             { label: "Warranty", val: "12mo" }
           ].map((stat, i) => (
