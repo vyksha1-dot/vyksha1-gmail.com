@@ -274,6 +274,7 @@ export function ReportModal({
               {/* Submit */}
               <div className="bg-yellow-100 p-4 border-4 border-yellow-400 font-bold uppercase text-[9px] leading-tight space-y-2">
                 <p>BY SUBMITTING THIS REPORT, YOU AGREE TO THE DISPATCH TERMS. OUR SQUAD TARGETS A 60-MINUTE ON-SITE ARRIVAL.</p>
+                <p className="text-red-700 font-black">* THIS IS AN ESTIMATED PRICE BASED ON AI SCAN. FINAL COST MAY ADJUST UPON ON-SITE CREW INSPECTION.</p>
                 <div className="flex items-center justify-between pt-2 border-t border-yellow-400/30">
                   <span className="text-[10px] font-black">Estimated Repair Cost:</span>
                   <span className="text-xl font-black">${reportMeasurements ? getPrice(reportMeasurements.widthInches, reportMeasurements.lengthInches, reportMeasurements.depthInches) : '---'}</span>
@@ -288,10 +289,11 @@ export function ReportModal({
                   <span className="text-lg font-black italic tracking-tighter">~14 MINS</span>
                 </div>
                 <div className="flex flex-col text-right">
-                  <span className="text-[8px] font-black uppercase opacity-40">SERVICE TOTAL</span>
+                  <span className="text-[8px] font-black uppercase opacity-40">SERVICE TOTAL (EST)</span>
                   <span className="text-lg font-black tracking-tighter text-green-600">
                     ${reportMeasurements ? getPrice(reportMeasurements.widthInches, reportMeasurements.lengthInches, reportMeasurements.depthInches) : 'TBD'}
                   </span>
+                  <p className="text-[7px] font-bold opacity-60 uppercase">*Final quote confirmed post-inspection</p>
                 </div>
               </div>
 
