@@ -519,6 +519,8 @@ export default function App() {
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [view, setView] = useState<'map' | 'list' | 'report' | 'admin'>('map');
   const [showReportModal, setShowReportModal] = useState(false);
+  const [adminTab, setAdminTab] = useState<'reports' | 'users'>('reports');
+  const [allUsers, setAllUsers] = useState<UserProfile[]>([]);
   const [selectedReport, setSelectedReport] = useState<PotholeReport | null>(null);
   const [showQR, setShowQR] = useState(false);
   const [showLanding, setShowLanding] = useState(false);
@@ -724,6 +726,34 @@ export default function App() {
 
     return unsubscribe;
   }, []);
+
+  const isAdmin = profile?.role === 'admin' || user?.email === 'vik@quickfixpothole.com' || user?.email === 'vyksha1@gmail.com';
+
+  useEffect(() => {
+    if (!isAdmin) {
+      setAllUsers([]);
+      return;
+    }
+
+    const q = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const usersData = snapshot.docs.map(doc => doc.data() as UserProfile);
+      setAllUsers(usersData);
+    }, (error) => {
+      console.error("User fetch error:", error);
+    });
+
+    return unsubscribe;
+  }, [isAdmin]);
+
+  const handleUpdateUserRole = async (userId: string, newRole: UserProfile['role']) => {
+    if (!isAdmin) return;
+    try {
+      await updateDoc(doc(db, 'users', userId), { role: newRole });
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `users/${userId}`);
+    }
+  };
 
   const handleLogin = async () => {
     if (isLoggingIn) return;
@@ -996,8 +1026,6 @@ export default function App() {
     setReportPhone('');
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
-
-  const isAdmin = profile?.role === 'admin' || user?.email === (process.env.ADMIN_EMAIL || 'vik@quickfixpothole.com');
 
   const updateStatus = async (reportId: string, newStatus: PotholeReport['status']) => {
     if (!isAdmin) return;
@@ -1377,11 +1405,34 @@ export default function App() {
 
               {view === 'admin' && (
                 <div className="h-full overflow-y-auto p-8 bg-paper">
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
-                    <div className="border-4 border-ink p-6 bold-shadow bg-neon">
-                      <h4 className="text-xs font-black uppercase mb-2">Total Revenue</h4>
-                      <p className="text-5xl font-black">${reports.filter(r => r.paymentStatus === 'paid').reduce((acc, r) => acc + r.price, 0)}</p>
-                    </div>
+                  <div className="flex items-center gap-4 mb-8">
+                    <button 
+                      onClick={() => setAdminTab('reports')}
+                      className={cn(
+                        "px-4 py-2 text-xs font-black uppercase tracking-widest border-2 border-ink transition-all",
+                        adminTab === 'reports' ? "bg-ink text-paper" : "bg-paper hover:bg-muted"
+                      )}
+                    >
+                      Report Management
+                    </button>
+                    <button 
+                      onClick={() => setAdminTab('users')}
+                      className={cn(
+                        "px-4 py-2 text-xs font-black uppercase tracking-widest border-2 border-ink transition-all",
+                        adminTab === 'users' ? "bg-ink text-paper" : "bg-paper hover:bg-muted"
+                      )}
+                    >
+                      User Management
+                    </button>
+                  </div>
+
+                  {adminTab === 'reports' ? (
+                    <>
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+                        <div className="border-4 border-ink p-6 bold-shadow bg-neon">
+                          <h4 className="text-xs font-black uppercase mb-2">Total Revenue</h4>
+                          <p className="text-5xl font-black">${reports.filter(r => r.paymentStatus === 'paid').reduce((acc, r) => acc + r.price, 0)}</p>
+                        </div>
                     <div className="border-4 border-ink p-6 bold-shadow bg-paper">
                       <h4 className="text-xs font-black uppercase mb-2">Pending Payments</h4>
                       <p className="text-5xl font-black text-red-600">${reports.filter(r => r.paymentStatus === 'unpaid').reduce((acc, r) => acc + r.price, 0)}</p>
@@ -1463,7 +1514,73 @@ export default function App() {
                         </tbody>
                       </table>
                     </div>
-                  </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-2xl font-black uppercase tracking-tighter">User Directory</h3>
+                        <p className="text-[10px] font-bold opacity-50 uppercase tracking-widest">{allUsers.length} total profiles recorded</p>
+                      </div>
+                      
+                      <div className="border-4 border-ink overflow-hidden bg-paper">
+                        <table className="w-full text-left border-collapse">
+                          <thead>
+                            <tr className="bg-ink text-paper uppercase text-[10px] font-black tracking-widest">
+                              <th className="p-4 border-r border-paper/20">Name</th>
+                              <th className="p-4 border-r border-paper/20">Email</th>
+                              <th className="p-4 border-r border-paper/20">Current Role</th>
+                              <th className="p-4 border-r border-paper/20">Joined</th>
+                              <th className="p-4">Promote/Demote</th>
+                            </tr>
+                          </thead>
+                          <tbody className="font-bold text-xs uppercase">
+                            {allUsers.map(u => (
+                              <tr key={u.uid} className="border-b-2 border-ink hover:bg-muted/50">
+                                <td className="p-4 border-r-2 border-ink">{u.displayName}</td>
+                                <td className="p-4 border-r-2 border-ink font-mono lowercase">{u.email}</td>
+                                <td className="p-4 border-r-2 border-ink">
+                                  <span className={cn(
+                                    "px-3 py-1 text-[9px] font-black border-2 border-ink",
+                                    u.role === 'admin' ? "bg-red-500 text-paper" : 
+                                    u.role === 'technician' ? "bg-neon text-ink" : "bg-muted text-ink"
+                                  )}>
+                                    {u.role}
+                                  </span>
+                                </td>
+                                <td className="p-4 border-r-2 border-ink opacity-50">{new Date(u.createdAt).toLocaleDateString()}</td>
+                                <td className="p-4">
+                                  <div className="flex gap-2">
+                                    {(['customer', 'technician', 'admin'] as const).map(role => (
+                                      <button
+                                        key={role}
+                                        onClick={() => handleUpdateUserRole(u.uid, role)}
+                                        disabled={u.role === role || u.email === 'vik@quickfixpothole.com' || u.email === 'vyksha1@gmail.com'}
+                                        className={cn(
+                                          "px-2 py-1 text-[8px] font-black uppercase border-2 border-ink transition-all disabled:opacity-20",
+                                          u.role === role ? "bg-ink text-paper" : "bg-paper hover:bg-neon"
+                                        )}
+                                      >
+                                        {role}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      <div className="bg-yellow-100 border-2 border-yellow-400 p-4 flex gap-4 items-start">
+                        <ShieldAlert className="w-6 h-6 text-yellow-600 flex-shrink-0" />
+                        <div className="text-[10px] space-y-1">
+                          <p className="font-black uppercase text-yellow-800 tracking-widest">Administrative Warning</p>
+                          <p className="font-bold text-yellow-700">Changing a user's role grants them immediate access to restricted system operations including report deletions and financial overrides. Proceed with extreme caution.</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
