@@ -96,9 +96,12 @@ function ReportDetailContent({
   onSendSMS, 
   onUpdateStatus,
   onRequestPayment,
-  isRequestingPayment
+  isRequestingPayment,
+  onVerifyPhoto
 }: any) {
   const [activeTab, setActiveTab] = useState<'details' | 'location' | 'photos' | 'analysis' | 'admin'>('details');
+  const [rejectionReason, setRejectionReason] = useState('');
+  const [showRejectionInput, setShowRejectionInput] = useState(false);
 
   const tabs = [
     { id: 'details', label: 'Details', icon: Info },
@@ -261,7 +264,82 @@ function ReportDetailContent({
                   <div className="absolute top-4 left-4">
                     <span className="px-3 py-1 bg-neon text-ink text-[10px] font-black uppercase tracking-widest border-2 border-ink">Original Capture</span>
                   </div>
+                  {report.photoVerification && (
+                    <div className="absolute inset-0 bg-ink/40 flex items-center justify-center p-4">
+                      {report.photoVerification.status === 'verified' ? (
+                        <div className="bg-green-400 border-4 border-ink p-4 flex items-center gap-3 bold-shadow animate-in zoom-in duration-300">
+                          <CheckCircle className="w-8 h-8" />
+                          <span className="text-xl font-black uppercase italic tracking-tighter">Verified</span>
+                        </div>
+                      ) : (
+                        <div className="bg-red-500 text-paper border-4 border-ink p-4 flex flex-col gap-1 bold-shadow animate-in zoom-in duration-300 w-full max-w-xs">
+                          <div className="flex items-center gap-3">
+                            <X className="w-8 h-8" />
+                            <span className="text-xl font-black uppercase italic tracking-tighter">Rejected</span>
+                          </div>
+                          {report.photoVerification.reason && (
+                            <p className="text-[10px] font-bold uppercase opacity-80 mt-2 border-t border-paper/30 pt-2">
+                              Reason: {report.photoVerification.reason}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
+
+                {isAdmin && (!report.photoVerification || report.photoVerification.status === 'pending') && (
+                  <div className="bg-muted border-4 border-ink p-4 space-y-4">
+                    <h4 className="text-xs font-black uppercase tracking-widest flex items-center gap-2">
+                      <ShieldAlert className="w-4 h-4" /> Photo Verification
+                    </h4>
+                    
+                    {!showRejectionInput ? (
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={() => onVerifyPhoto(report.id, 'verified')}
+                          className="flex-1 py-4 bg-green-400 border-2 border-ink font-black uppercase text-xs hover:bg-green-500 transition-colors bold-shadow active:translate-y-1"
+                        >
+                          Confirm Image
+                        </button>
+                        <button 
+                          onClick={() => setShowRejectionInput(true)}
+                          className="flex-1 py-4 bg-red-400 border-2 border-ink font-black uppercase text-xs hover:bg-red-500 transition-colors bold-shadow active:translate-y-1"
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-3 animate-in slide-in-from-top-2 duration-200">
+                        <textarea
+                          value={rejectionReason}
+                          onChange={(e) => setRejectionReason(e.target.value)}
+                          placeholder="Why is this photo rejected? (e.g. blurry, wrong location, not a pothole)"
+                          className="w-full p-3 bg-paper border-2 border-ink font-bold text-[10px] h-20 uppercase resize-none focus:outline-none"
+                        />
+                        <div className="flex gap-2">
+                          <button 
+                            onClick={() => {
+                              onVerifyPhoto(report.id, 'rejected', rejectionReason);
+                              setShowRejectionInput(false);
+                            }}
+                            disabled={!rejectionReason.trim()}
+                            className="flex-1 py-3 bg-red-500 text-paper border-2 border-ink font-black uppercase text-[10px] disabled:opacity-50"
+                          >
+                            Send Rejection
+                          </button>
+                          <button 
+                            onClick={() => setShowRejectionInput(false)}
+                            className="px-4 py-3 bg-muted border-2 border-ink font-black uppercase text-[10px]"
+                          >
+                            Back
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div className="flex gap-2">
                   <button className="flex-1 py-3 border-2 border-ink bg-muted text-[10px] font-black uppercase flex items-center justify-center gap-2">
                     <Download className="w-4 h-4" /> Download
@@ -970,6 +1048,25 @@ export default function App() {
     }
   };
 
+  const handleVerifyPhoto = async (reportId: string, status: 'verified' | 'rejected', reason?: string) => {
+    if (!isAdmin) return;
+    
+    try {
+      const updateData = {
+        photoVerification: {
+          status,
+          reason: reason || null,
+          verifiedAt: Date.now(),
+          verifiedBy: user?.email || 'admin'
+        }
+      };
+      await updateDoc(doc(db, 'reports', reportId), updateData);
+      setSelectedReport(prev => prev ? { ...prev, ...updateData } : null);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `reports/${reportId}`);
+    }
+  };
+
   if (!isAuthReady) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-paper">
@@ -1334,6 +1431,7 @@ export default function App() {
                   onUpdateStatus={updateStatus}
                   onRequestPayment={handleRequestPayment}
                   isRequestingPayment={isRequestingPayment}
+                  onVerifyPhoto={handleVerifyPhoto}
                 />
               </motion.div>
             ) : (
@@ -1444,6 +1542,7 @@ export default function App() {
                     onUpdateStatus={updateStatus}
                     onRequestPayment={handleRequestPayment}
                     isRequestingPayment={isRequestingPayment}
+                    onVerifyPhoto={handleVerifyPhoto}
                   />
                 </div>
               </motion.div>

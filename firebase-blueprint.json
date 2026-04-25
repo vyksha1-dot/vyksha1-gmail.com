@@ -36,7 +36,16 @@
         "price": { "type": "number" },
         "severity": { "type": "string", "enum": ["low", "medium", "high"] },
         "description": { "type": "string" },
-        "createdAt": { "type": "number" }
+        "createdAt": { "type": "number" },
+        "photoVerification": {
+          "type": "object",
+          "properties": {
+            "status": { "type": "string", "enum": ["pending", "verified", "rejected"] },
+            "reason": { "type": "string" },
+            "verifiedAt": { "type": "number" },
+            "verifiedBy": { "type": "string" }
+          }
+        }
       },
       "required": ["id", "userId", "imageUrl", "location", "status", "severity", "createdAt"]
     }

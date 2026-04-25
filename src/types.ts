@@ -23,6 +23,12 @@ export interface PotholeReport {
     depthInches: number;
     size?: 'small' | 'medium' | 'large';
   };
+  photoVerification?: {
+    status: 'pending' | 'verified' | 'rejected';
+    reason?: string;
+    verifiedAt?: number;
+    verifiedBy?: string;
+  };
 }
 
 export interface UserProfile {

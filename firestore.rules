@@ -29,6 +29,11 @@ service cloud.firestore {
     //   - severity: string (required, ['low', 'medium', 'high'])
     //   - description: string (optional)
     //   - createdAt: number (required)
+    //   - photoVerification: map (optional)
+    //     - status: string (required, ['pending', 'verified', 'rejected'])
+    //     - reason: string (optional)
+    //     - verifiedAt: number (required)
+    //     - verifiedBy: string (required)
     //
     // ===============================================================
 
@@ -84,7 +89,12 @@ service cloud.firestore {
              data.status in ['pending', 'in-progress', 'repaired'] &&
              data.severity in ['low', 'medium', 'high'] &&
              data.createdAt is number &&
-             data.paymentStatus in ['unpaid', 'paid'];
+             data.paymentStatus in ['unpaid', 'paid'] &&
+             ( !data.keys().hasAny(['photoVerification']) || (
+               data.photoVerification is map &&
+               data.photoVerification.status in ['pending', 'verified', 'rejected'] &&
+               data.photoVerification.verifiedAt is number
+             ));
     }
 
     // ===============================================================
