@@ -105,6 +105,11 @@ function ReportDetailContent({
   const [showRejectionInput, setShowRejectionInput] = useState(false);
   const [manualPrice, setManualPrice] = useState(report.price.toString());
   const [isUpdatingPrice, setIsUpdatingPrice] = useState(false);
+  const [justUpdatedPrice, setJustUpdatedPrice] = useState(false);
+
+  useEffect(() => {
+    setManualPrice(report.price.toString());
+  }, [report.id, report.price]);
 
   const tabs = [
     { id: 'details', label: 'Details', icon: Info },
@@ -452,14 +457,22 @@ function ReportDetailContent({
                     </div>
                     <button 
                       onClick={async () => {
+                        const priceValue = parseFloat(manualPrice);
+                        if (isNaN(priceValue)) return;
+                        
                         setIsUpdatingPrice(true);
-                        await onUpdatePrice(report.id, parseFloat(manualPrice));
+                        await onUpdatePrice(report.id, priceValue);
                         setIsUpdatingPrice(false);
+                        setJustUpdatedPrice(true);
+                        setTimeout(() => setJustUpdatedPrice(false), 2000);
                       }}
-                      disabled={isUpdatingPrice || parseFloat(manualPrice) === report.price}
-                      className="px-6 py-3 bg-neon border-2 border-ink font-black uppercase text-[10px] bold-shadow active:translate-y-1 disabled:opacity-50"
+                      disabled={isUpdatingPrice || parseFloat(manualPrice) === report.price || isNaN(parseFloat(manualPrice))}
+                      className={cn(
+                        "px-6 py-3 border-2 border-ink font-black uppercase text-[10px] bold-shadow active:translate-y-1 transition-all disabled:opacity-50",
+                        justUpdatedPrice ? "bg-green-400" : "bg-neon"
+                      )}
                     >
-                      {isUpdatingPrice ? "..." : "Apply"}
+                      {isUpdatingPrice ? "..." : justUpdatedPrice ? <Check className="w-4 h-4 mx-auto" /> : "Apply"}
                     </button>
                   </div>
                 </div>
