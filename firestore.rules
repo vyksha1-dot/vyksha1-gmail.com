@@ -75,7 +75,7 @@ service cloud.firestore {
     }
 
     function isValidReport(data) {
-      return data.keys().hasAll(['id', 'reporterName', 'reporterPhone', 'reporterEmail', 'imageUrl', 'location', 'status', 'severity', 'createdAt', 'paymentStatus']) &&
+      return data.keys().hasAll(['id', 'reporterName', 'reporterPhone', 'reporterEmail', 'imageUrl', 'location', 'status', 'severity', 'createdAt', 'paymentStatus', 'price']) &&
              data.id is string &&
              data.id.size() < 100 &&
              data.reporterName is string &&
@@ -90,6 +90,7 @@ service cloud.firestore {
              data.severity in ['low', 'medium', 'high'] &&
              data.createdAt is number &&
              data.paymentStatus in ['unpaid', 'paid'] &&
+             data.price is number &&
              ( !data.keys().hasAny(['photoVerification']) || (
                data.photoVerification is map &&
                data.photoVerification.status in ['pending', 'verified', 'rejected'] &&

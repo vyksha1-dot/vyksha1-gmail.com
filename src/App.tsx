@@ -19,7 +19,7 @@ import {
   Camera, MapPin, AlertTriangle, CheckCircle, Clock, LogOut, User as UserIcon, 
   Map as MapIcon, Plus, X, ChevronRight, Info, CreditCard, Trash2,
   Zap, ShieldAlert, Globe, Download, Maximize, Maximize2, ArrowDown,
-  MessageSquare, Check
+  MessageSquare, Check, DollarSign
 } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
 import { MapContainer, TileLayer, Marker, Popup, useMap, LayersControl } from 'react-leaflet';
@@ -97,11 +97,14 @@ function ReportDetailContent({
   onUpdateStatus,
   onRequestPayment,
   isRequestingPayment,
-  onVerifyPhoto
+  onVerifyPhoto,
+  onUpdatePrice
 }: any) {
   const [activeTab, setActiveTab] = useState<'details' | 'location' | 'photos' | 'analysis' | 'admin'>('details');
   const [rejectionReason, setRejectionReason] = useState('');
   const [showRejectionInput, setShowRejectionInput] = useState(false);
+  const [manualPrice, setManualPrice] = useState(report.price.toString());
+  const [isUpdatingPrice, setIsUpdatingPrice] = useState(false);
 
   const tabs = [
     { id: 'details', label: 'Details', icon: Info },
@@ -431,6 +434,34 @@ function ReportDetailContent({
                     <Trash2 className="w-5 h-5" />
                     <span className="text-[8px]">Terminate</span>
                   </button>
+                </div>
+
+                <div className="space-y-2 pt-4 border-t-2 border-ink">
+                  <p className="text-[8px] font-black uppercase opacity-50 flex items-center gap-2">
+                    <DollarSign className="w-3 h-3" /> Price Override
+                  </p>
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 font-black text-xs">$</span>
+                      <input 
+                        type="number"
+                        value={manualPrice}
+                        onChange={(e) => setManualPrice(e.target.value)}
+                        className="w-full pl-7 pr-3 py-3 bg-paper border-2 border-ink font-black text-xs focus:outline-none focus:bg-neon/10"
+                      />
+                    </div>
+                    <button 
+                      onClick={async () => {
+                        setIsUpdatingPrice(true);
+                        await onUpdatePrice(report.id, parseFloat(manualPrice));
+                        setIsUpdatingPrice(false);
+                      }}
+                      disabled={isUpdatingPrice || parseFloat(manualPrice) === report.price}
+                      className="px-6 py-3 bg-neon border-2 border-ink font-black uppercase text-[10px] bold-shadow active:translate-y-1 disabled:opacity-50"
+                    >
+                      {isUpdatingPrice ? "..." : "Apply"}
+                    </button>
+                  </div>
                 </div>
 
                 <div className="space-y-3 pt-4 border-t-2 border-ink">
@@ -1000,6 +1031,17 @@ export default function App() {
     }
   };
 
+  const updatePrice = async (reportId: string, newPrice: number) => {
+    if (!isAdmin) return;
+    
+    try {
+      await updateDoc(doc(db, 'reports', reportId), { price: newPrice });
+      setSelectedReport(prev => prev ? { ...prev, price: newPrice } : null);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `reports/${reportId}`);
+    }
+  };
+
   const sendCustomSMS = async (report: PotholeReport) => {
     if (!isAdmin || !smsMessageToSend.trim()) return;
     
@@ -1063,6 +1105,22 @@ export default function App() {
       };
       await updateDoc(doc(db, 'reports', reportId), updateData);
       setSelectedReport(prev => prev ? { ...prev, ...updateData } : null);
+
+      // Trigger notification if rejected
+      if (status === 'rejected' && reason && selectedReport) {
+        try {
+          await fetch('/api/notify-photo-rejection', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              report: selectedReport,
+              reason: reason
+            })
+          });
+        } catch (error) {
+          console.error("Failed to send rejection notification:", error);
+        }
+      }
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `reports/${reportId}`);
     }
@@ -1445,6 +1503,7 @@ export default function App() {
                   onRequestPayment={handleRequestPayment}
                   isRequestingPayment={isRequestingPayment}
                   onVerifyPhoto={handleVerifyPhoto}
+                  onUpdatePrice={updatePrice}
                 />
               </motion.div>
             ) : (
@@ -1556,6 +1615,7 @@ export default function App() {
                     onRequestPayment={handleRequestPayment}
                     isRequestingPayment={isRequestingPayment}
                     onVerifyPhoto={handleVerifyPhoto}
+                    onUpdatePrice={updatePrice}
                   />
                 </div>
               </motion.div>

@@ -402,6 +402,64 @@ app.post("/api/create-checkout-session", async (req, res) => {
   }
 });
 
+app.post("/api/notify-photo-rejection", async (req, res) => {
+  try {
+    const { report, reason } = req.body;
+    
+    if (!report || !reason) {
+      return res.status(400).json({ error: "Missing report or reason" });
+    }
+
+    const resendApiKey = process.env.RESEND_API_KEY;
+
+    console.log(`[PHOTO-REJECT] Rejecting photo for #${report.id.slice(0, 8)}. Reason: ${reason}`);
+
+    let smsResult = null;
+    let emailResult = null;
+
+    const message = `❌ QUICK FIX: Your photo for Ticket #${report.id.slice(0, 8)} was rejected. Reason: ${reason}. Please upload a clearer photo of the pothole to proceed with the repair.`;
+
+    // SMS to Customer
+    if (report.reporterPhone) {
+      smsResult = await sendSMS(report.reporterPhone, message);
+    }
+
+    // Email to Customer
+    if (report.reporterEmail && resendApiKey) {
+      try {
+        const resend = new Resend(resendApiKey);
+        emailResult = await resend.emails.send({
+          from: `Quick Fix <dispatch@quickfixpothole.com>`,
+          to: report.reporterEmail,
+          subject: `Action Required: Photo Rejected for Ticket #${report.id.slice(0, 8)}`,
+          html: `
+            <div style="font-family: sans-serif; border: 10px solid #000; padding: 20px; background: #fff;">
+              <h1 style="text-transform: uppercase; font-size: 30px; margin: 0; background: #000; color: #fff; padding: 10px;">PHOTO REJECTED</h1>
+              <div style="padding: 20px; border: 2px solid #000; margin-top: 10px;">
+                <p>We're sorry, <strong>${report.reporterName || 'Customer'}</strong>.</p>
+                <p>The photo provided for your pothole report (Ticket #${report.id.slice(0, 8)}) could not be verified by our dispatch team.</p>
+                <div style="background: #f0f0f0; border-left: 5px solid #ff0000; padding: 15px; margin: 15px 0;">
+                  <p style="margin: 0; font-weight: bold; color: #ff0000;">REJECTION REASON:</p>
+                  <p style="margin: 5px 0 0 0; font-style: italic;">"${reason}"</p>
+                </div>
+                <p>To ensure we send the right equipment and provide accurate pricing, please submit a new report with a high-quality primary photo showing the size and depth of the damage.</p>
+                <p style="font-size: 10px; opacity: 0.6; margin-top: 20px;">Ticket reference: ${report.id}</p>
+              </div>
+            </div>
+          `
+        });
+      } catch (err: any) {
+        console.error("[PHOTO-REJECT] Email error:", err.message);
+      }
+    }
+
+    res.json({ success: true, sms: !!smsResult, email: !!emailResult });
+  } catch (error: any) {
+    console.error("[PHOTO-REJECT] Global Error:", error);
+    res.status(500).json({ error: "Internal error" });
+  }
+});
+
 // Vercel Entry Point
 export default app;
 
