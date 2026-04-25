@@ -5,13 +5,18 @@ import { Clock, AlertTriangle, CheckCircle } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { isAfterHours } from '../lib/pricing';
 
-export function LandingPage({ onLogin, onReport, isLoading }: { onLogin: () => void, onReport: () => void, isLoading: boolean }) {
+export function LandingPage({ onLogin, onReport, isLoading, isLoggedIn }: { onLogin: () => void, onReport: () => void, isLoading: boolean, isLoggedIn?: boolean }) {
   return (
     <div className="min-h-screen bg-paper text-ink overflow-x-hidden">
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-[50] border-b-4 border-ink bg-paper/80 backdrop-blur-md px-8 py-3 flex justify-between items-center">
         <div className="flex items-center gap-3">
-          <Logo className="w-20 h-20 md:w-32 md:h-32" />
+          <button 
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="hover:scale-105 transition-transform active:scale-95 cursor-pointer"
+          >
+            <Logo className="w-20 h-20 md:w-32 md:h-32" />
+          </button>
         </div>
         <div className="flex gap-4 md:gap-8 items-center">
           <a href="tel:502-489-7790" className="hidden sm:flex items-center gap-2 px-3 py-1 bg-ink text-neon border-2 border-ink font-black uppercase text-[10px] tracking-widest hover:scale-105 transition-transform">
@@ -23,7 +28,7 @@ export function LandingPage({ onLogin, onReport, isLoading }: { onLogin: () => v
             disabled={isLoading}
             className="text-[10px] font-black uppercase tracking-widest opacity-30 hover:opacity-100 transition-opacity disabled:opacity-10"
           >
-            {isLoading ? 'Wait...' : 'Admin Login'}
+            {isLoading ? 'Wait...' : isLoggedIn ? 'Admin Dashboard' : 'Admin Login'}
           </button>
           <button 
             onClick={onReport} 

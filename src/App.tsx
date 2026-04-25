@@ -490,6 +490,7 @@ export default function App() {
   const [showReportModal, setShowReportModal] = useState(false);
   const [selectedReport, setSelectedReport] = useState<PotholeReport | null>(null);
   const [showQR, setShowQR] = useState(false);
+  const [showLanding, setShowLanding] = useState(false);
   const [isPaying, setIsPaying] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isSendingSMS, setIsSendingSMS] = useState(false);
@@ -1075,15 +1076,22 @@ export default function App() {
     );
   }
 
-  // If not logged in OR not an admin -> Show Public Experience
-  if (!user || !isAdmin) {
+  // If not logged in OR not an admin OR explicitly showing landing -> Show Public Experience
+  if (!user || !isAdmin || showLanding) {
     return (
       <ErrorBoundary>
         <div className="relative">
           <LandingPage 
-            onLogin={handleLogin} 
+            onLogin={() => {
+              if (user && isAdmin) {
+                setShowLanding(false);
+              } else {
+                handleLogin();
+              }
+            }} 
             onReport={handleOpenReportModal} 
             isLoading={isLoggingIn} 
+            isLoggedIn={!!user && isAdmin}
           />
           
           <ReportModal 
@@ -1125,7 +1133,12 @@ export default function App() {
         <main className="flex-1 flex flex-col relative overflow-hidden">
           {/* Header */}
           <header className="p-8 pb-4 flex items-center gap-6">
-            <Logo className="w-32 h-32 md:w-40 md:h-40" />
+            <button 
+              onClick={() => setShowLanding(true)}
+              className="hover:scale-105 transition-transform active:scale-95 cursor-pointer"
+            >
+              <Logo className="w-32 h-32 md:w-40 md:h-40" />
+            </button>
           </header>
 
           {/* View Toggle & Content */}
