@@ -1404,7 +1404,6 @@ export default function App() {
                             </p>
                             <p className="text-lg font-black uppercase tracking-tighter flex items-center gap-2">
                               <span className="text-[10px] opacity-40">Ticket Ready</span>
-                              <Plus className="w-4 h-4 text-neon stroke-[4]" />
                               ${report.price}
                             </p>
                           </div>
@@ -1600,12 +1599,14 @@ export default function App() {
           </div>
 
           {/* Floating Action Button */}
-          <button 
-            onClick={handleOpenReportModal}
-            className="absolute bottom-12 right-12 w-20 h-20 bg-neon text-ink border-4 border-ink bold-shadow flex items-center justify-center hover:scale-105 transition-transform z-40"
-          >
-            <Plus className="w-10 h-10" />
-          </button>
+          {view !== 'admin' && (
+            <button 
+              onClick={handleOpenReportModal}
+              className="absolute bottom-12 right-12 w-20 h-20 bg-neon text-ink border-4 border-ink bold-shadow flex items-center justify-center hover:scale-105 transition-transform z-40"
+            >
+              <Plus className="w-10 h-10" />
+            </button>
+          )}
         </main>
 
         {/* Side Panel */}
