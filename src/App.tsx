@@ -111,7 +111,7 @@ function ReportDetailContent({
   return (
     <div className="flex flex-col h-full overflow-hidden bg-paper">
       {/* Header with Close */}
-      <div className="p-6 border-b-4 border-ink flex items-center justify-between bg-paper z-10">
+      <div className="p-4 md:p-6 border-b-4 border-ink flex items-center justify-between bg-paper z-10">
         <div className="flex items-center gap-3">
           <div className={cn(
             "w-3 h-3 rounded-full animate-pulse",
@@ -123,27 +123,27 @@ function ReportDetailContent({
         </div>
         <button 
           onClick={onClose}
-          className="p-2 border-2 border-ink hover:bg-ink hover:text-paper transition-all bold-shadow active:translate-y-0.5"
+          className="p-3 md:p-2 border-2 border-ink hover:bg-ink hover:text-paper transition-all bold-shadow active:translate-y-1 touch-manipulation"
         >
-          <X className="w-5 h-5" />
+          <X className="w-6 h-6 md:w-5 md:h-5" />
         </button>
       </div>
 
       {/* Modern Tabs */}
-      <div className="flex border-b-2 border-ink bg-muted overflow-x-auto custom-scrollbar no-scrollbar">
+      <div className="flex border-b-2 border-ink bg-muted overflow-x-auto custom-scrollbar no-scrollbar scroll-smooth">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
             className={cn(
-              "flex-1 min-w-[80px] py-3 px-2 flex flex-col items-center gap-1 transition-all border-r-2 border-ink last:border-r-0",
+              "flex-1 min-w-[90px] py-4 px-4 flex flex-col items-center gap-1 transition-all border-r-2 border-ink last:border-r-0 active:bg-ink active:text-paper touch-manipulation",
               activeTab === tab.id 
                 ? "bg-neon text-ink" 
                 : "bg-paper text-slate-400 hover:bg-muted hover:text-ink"
             )}
           >
-            <tab.icon className="w-4 h-4" />
-            <span className="text-[8px] font-black uppercase tracking-tighter">{tab.label}</span>
+            <tab.icon className="w-5 h-5" />
+            <span className="text-[10px] font-black uppercase tracking-tighter">{tab.label}</span>
           </button>
         ))}
       </div>
@@ -335,7 +335,7 @@ function ReportDetailContent({
                       }
                     }}
                     className={cn(
-                      "flex flex-col items-center gap-2 p-4 border-2 border-ink font-black uppercase transition-all bold-shadow active:translate-y-1",
+                      "flex flex-col items-center gap-2 p-4 border-2 border-ink font-black uppercase transition-all bold-shadow active:translate-y-1 touch-manipulation",
                       report.paymentStatus === 'paid' ? "bg-green-400" : "bg-paper hover:bg-neon",
                       isRequestingPayment && "animate-pulse"
                     )}
@@ -348,7 +348,7 @@ function ReportDetailContent({
                   
                   <button
                     onClick={() => onDelete(report.id)}
-                    className="flex flex-col items-center gap-2 p-4 border-2 border-ink bg-paper text-red-600 font-black uppercase transition-all hover:bg-red-50 bold-shadow active:translate-y-1"
+                    className="flex flex-col items-center gap-2 p-4 border-2 border-ink bg-paper text-red-600 font-black uppercase transition-all hover:bg-red-50 bold-shadow active:translate-y-1 touch-manipulation"
                   >
                     <Trash2 className="w-5 h-5" />
                     <span className="text-[8px]">Terminate</span>
@@ -384,7 +384,7 @@ function ReportDetailContent({
                         key={s}
                         onClick={() => onUpdateStatus(report.id, s)}
                         className={cn(
-                          "py-3 border-2 border-ink font-black uppercase text-[9px] transition-all flex items-center justify-between px-4",
+                          "py-4 border-2 border-ink font-black uppercase text-[10px] transition-all flex items-center justify-between px-4 touch-manipulation",
                           report.status === s ? "bg-neon" : "bg-muted opacity-50 grayscale hover:grayscale-0 hover:opacity-100"
                         )}
                       >
@@ -1413,7 +1413,7 @@ export default function App() {
         {/* Detail Modal (Mobile Only) */}
         <AnimatePresence>
           {selectedReport && (
-            <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 lg:hidden">
+            <div className="fixed inset-0 z-[100] flex items-stretch justify-center p-0 lg:hidden">
               <motion.div 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -1428,22 +1428,24 @@ export default function App() {
                 initial={{ y: "100%" }}
                 animate={{ y: 0 }}
                 exit={{ y: "100%" }}
-                className="relative bg-white w-full max-w-lg border-4 border-ink overflow-hidden bold-shadow flex flex-col h-[80vh] sm:h-auto sm:max-h-[90vh]"
+                className="relative bg-white w-full border-ink overflow-hidden bold-shadow flex flex-col h-full"
               >
-                <ReportDetailContent 
-                  report={selectedReport}
-                  isAdmin={isAdmin}
-                  onClose={() => setSelectedReport(null)}
-                  onUpdatePayment={updatePaymentStatus}
-                  onDelete={deleteReport}
-                  smsMessage={smsMessageToSend}
-                  setSmsMessage={setSmsMessageToSend}
-                  isSendingSMS={isSendingSMS}
-                  onSendSMS={sendCustomSMS}
-                  onUpdateStatus={updateStatus}
-                  onRequestPayment={handleRequestPayment}
-                  isRequestingPayment={isRequestingPayment}
-                />
+                <div className="flex flex-col h-full">
+                  <ReportDetailContent 
+                    report={selectedReport}
+                    isAdmin={isAdmin}
+                    onClose={() => setSelectedReport(null)}
+                    onUpdatePayment={updatePaymentStatus}
+                    onDelete={deleteReport}
+                    smsMessage={smsMessageToSend}
+                    setSmsMessage={setSmsMessageToSend}
+                    isSendingSMS={isSendingSMS}
+                    onSendSMS={sendCustomSMS}
+                    onUpdateStatus={updateStatus}
+                    onRequestPayment={handleRequestPayment}
+                    isRequestingPayment={isRequestingPayment}
+                  />
+                </div>
               </motion.div>
             </div>
           )}
