@@ -1080,7 +1080,17 @@ export default function App() {
     
     try {
       await updateDoc(doc(db, 'reports', reportId), { price: newPrice });
-      setSelectedReport(prev => prev ? { ...prev, price: newPrice } : null);
+      const currentReport = reports.find(r => r.id === reportId);
+      if (currentReport) {
+        setSelectedReport({ ...currentReport, price: newPrice });
+        
+        // Notify of price change
+        fetch('/api/notify-price-change', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ report: currentReport, newPrice }),
+        }).catch(err => console.error("Price notification failed:", err));
+      }
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `reports/${reportId}`);
     }

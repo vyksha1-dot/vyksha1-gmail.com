@@ -460,6 +460,73 @@ app.post("/api/notify-photo-rejection", async (req, res) => {
   }
 });
 
+app.post("/api/notify-price-change", async (req, res) => {
+  try {
+    const { report, newPrice } = req.body;
+    
+    if (!report || newPrice === undefined) {
+      return res.status(400).json({ error: "Missing report or newPrice" });
+    }
+
+    const resendApiKey = process.env.RESEND_API_KEY;
+    const adminEmail = process.env.ADMIN_EMAIL || 'vik@quickfixpothole.com';
+
+    console.log(`[PRICE-CHANGE] Updating price for #${report.id.slice(0, 8)} to $${newPrice}`);
+
+    let smsResult = null;
+    let emailResult = null;
+
+    const message = `💰 QUICK FIX: Your repair estimate for Ticket #${report.id.slice(0, 8)} has been updated to $${newPrice}. Reason: On-site measurement adjustment. Track here: ${process.env.APP_URL || 'https://quickfixpothole.com'}`;
+
+    // SMS to Customer
+    if (report.reporterPhone) {
+      smsResult = await sendSMS(report.reporterPhone, message);
+    }
+
+    // Email to Customer
+    if (report.reporterEmail && resendApiKey) {
+      try {
+        const resend = new Resend(resendApiKey);
+        emailResult = await resend.emails.send({
+          from: `Quick Fix <dispatch@quickfixpothole.com>`,
+          to: report.reporterEmail,
+          subject: `Updated Estimate: Ticket #${report.id.slice(0, 8)}`,
+          html: `
+            <div style="font-family: sans-serif; border: 10px solid #000; padding: 20px; background: #fff;">
+              <h1 style="text-transform: uppercase; font-size: 30px; margin: 0; background: #000; color: #fff; padding: 10px;">PRICE UPDATE</h1>
+              <div style="padding: 20px; border: 2px solid #000; margin-top: 10px;">
+                <p>Hello <strong>${report.reporterName || 'Customer'}</strong>,</p>
+                <p>Our dispatch team has updated the service estimate for your pothole repair request (Ticket #${report.id.slice(0, 8)}).</p>
+                <div style="background: #f0f0f0; border-left: 5px solid #000; padding: 15px; margin: 15px 0; display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <p style="margin: 0; font-size: 10px; opacity: 0.6; text-transform: uppercase;">New Estimate:</p>
+                    <p style="margin: 0; font-size: 30px; font-weight: black;">$${newPrice}</p>
+                  </div>
+                  <div style="text-align: right;">
+                    <p style="margin: 0; font-size: 10px; opacity: 0.6; text-transform: uppercase;">Previous Estimate:</p>
+                    <p style="margin: 0; font-size: 18px; font-weight: bold; text-decoration: line-through;">$${report.price}</p>
+                  </div>
+                </div>
+                <p>This adjustment often occurs after a manual on-site measurement confirms more material is required than originally estimated by the AI scan.</p>
+                <p>You can proceed to pay for your repair using the link below:</p>
+                <a href="${process.env.APP_URL || 'https://quickfixpothole.com'}" style="display: inline-block; background: #000; color: #fff; text-decoration: none; padding: 15px 30px; font-weight: bold; text-transform: uppercase; margin-top: 10px;">View Report & Pay</a>
+                <p style="font-size: 10px; opacity: 0.6; margin-top: 20px;">Ticket reference: ${report.id}</p>
+              </div>
+            </div>
+          `
+        });
+      } catch (err: any) {
+        console.error("[PRICE-NOTIFY] Email error:", err.message);
+      }
+    }
+
+    res.json({ success: true, sms: !!smsResult, email: !!emailResult });
+  } catch (error: any) {
+    console.error("[PRICE-NOTIFY] Global Error:", error);
+    res.status(500).json({ error: "Internal error" });
+  }
+});
+
 // Vercel Entry Point
 export default app;
 
