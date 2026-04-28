@@ -9,8 +9,8 @@ export function getPrice(severityOrWidth: 'low' | 'medium' | 'high' | number, le
   
   if (typeof severityOrWidth === 'string') {
     const pricing = {
-      low: 299,
-      medium: 499,
+      low: 99,
+      medium: 149,
       high: 899
     };
     return pricing[severityOrWidth] * multiplier;

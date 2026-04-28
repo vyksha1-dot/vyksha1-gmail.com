@@ -146,7 +146,7 @@ export function LandingPage({ onLogin, onReport, isLoading, isLoggedIn }: { onLo
                 <span className={cn(!isAfterHours() ? "opacity-30" : "text-neon bg-ink px-2")}>After Hours: 5PM-6AM</span>
              </div>
              <p className="text-[10px] font-bold uppercase opacity-50 italic">Night dispatch rates double to cover hazard pay & logistics</p>
-             <p className="text-[10px] font-black uppercase text-red-500 bg-ink px-2 py-0.5">Note: All rates listed cover standard filling. Foundation setting requires custom quote.</p>
+             <p className="text-[10px] font-black uppercase text-red-500 bg-ink px-2 py-0.5">Note: It might be more if the actual pothole is a different size and needs more material to fix.</p>
           </div>
         </div>
 
@@ -154,14 +154,14 @@ export function LandingPage({ onLogin, onReport, isLoading, isLoggedIn }: { onLo
           {[
             { 
               name: "Small Pothole", 
-              standard: "$299", 
-              after: "$598",
+              standard: "$99", 
+              after: "$198",
               feat: ["Under 1ft diameter", "Standard Filling", "Quick Sealant"] 
             },
             { 
               name: "Medium Crack", 
-              standard: "$499", 
-              after: "$998",
+              standard: "$149", 
+              after: "$298",
               feat: ["Up to 3ft span", "Edge reinforcement", "Tamp compression"] 
             },
             { 

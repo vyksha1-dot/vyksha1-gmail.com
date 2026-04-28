@@ -196,9 +196,12 @@ function ReportDetailContent({
                   </p>
                 </div>
 
-                <div className="flex items-center justify-between border-y-2 border-ink py-4">
-                  <h4 className="text-[10px] font-black uppercase tracking-widest">Service Value</h4>
-                  <p className="text-3xl font-black tracking-tighter">${report.price}</p>
+                <div className="flex flex-col border-y-2 border-ink py-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-[10px] font-black uppercase tracking-widest">Service Value</h4>
+                    <p className="text-3xl font-black tracking-tighter">${report.price}</p>
+                  </div>
+                  <p className="text-[7px] font-black uppercase text-red-500 mt-1">* NOTE: IT MIGHT BE MORE IF THE ACTUAL POTHOLE IS A DIFFERENT SIZE AND NEEDS MORE MATERIAL TO FIX.</p>
                 </div>
 
                 <div className="space-y-4">
