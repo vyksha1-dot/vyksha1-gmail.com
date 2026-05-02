@@ -743,7 +743,7 @@ export default function App() {
     return unsubscribe;
   }, []);
 
-  const isAdmin = profile?.role === 'admin' || user?.email === 'vik@quickfixpothole.com' || user?.email === 'vyksha1@gmail.com';
+  const isAdmin = profile?.role === 'admin' || user?.email === 'vik@quickfixpothole.com';
 
   useEffect(() => {
     if (!isAdmin) {
@@ -1580,7 +1580,7 @@ export default function App() {
                                       <button
                                         key={role}
                                         onClick={() => handleUpdateUserRole(u.uid, role)}
-                                        disabled={u.role === role || u.email === 'vik@quickfixpothole.com' || u.email === 'vyksha1@gmail.com'}
+                                        disabled={u.role === role || u.email === 'vik@quickfixpothole.com'}
                                         className={cn(
                                           "px-2 py-1 text-[8px] font-black uppercase border-2 border-ink transition-all disabled:opacity-20",
                                           u.role === role ? "bg-ink text-paper" : "bg-paper hover:bg-neon"
