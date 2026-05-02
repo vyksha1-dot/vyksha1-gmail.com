@@ -752,6 +752,17 @@ export default function App() {
             paymentMethod: 'stripe'
           });
 
+          // Fetch report to send notification
+          const reportSnap = await getDoc(reportRef);
+          if (reportSnap.exists()) {
+            const reportData = { id: reportSnap.id, ...reportSnap.data() };
+            fetch('/api/notify-payment', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ report: reportData }),
+            }).catch(err => console.error("Payment notification failed:", err));
+          }
+
           // Google Ads Purchase Conversion
           if (typeof window.gtag === 'function') {
             const snap = await getDoc(reportRef);
@@ -1152,6 +1163,18 @@ export default function App() {
       
       await updateDoc(doc(db, 'reports', reportId), updateData);
       setSelectedReport(prev => prev ? { ...prev, ...updateData } : null);
+
+      // If marked as paid, send notification
+      if (newStatus === 'paid') {
+        const currentReport = reports.find(r => r.id === reportId);
+        if (currentReport) {
+          fetch('/api/notify-payment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ report: { ...currentReport, ...updateData } }),
+          }).catch(err => console.error("Payment notification failed:", err));
+        }
+      }
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `reports/${reportId}`);
     }

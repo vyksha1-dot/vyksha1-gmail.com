@@ -527,6 +527,77 @@ app.post("/api/notify-price-change", async (req, res) => {
   }
 });
 
+app.post("/api/notify-payment", async (req, res) => {
+  try {
+    const { report } = req.body;
+    
+    if (!report) {
+      return res.status(400).json({ error: "Missing report data" });
+    }
+
+    const resendApiKey = process.env.RESEND_API_KEY;
+    console.log(`[PAYMENT-CONFIRM] Sending thank you for #${report.id.slice(0, 8)}`);
+
+    let emailResult = null;
+    let smsResult = null;
+
+    const message = `✅ PAYMENT CONFIRMED: Thank you for your payment of $${report.price} for Ticket #${report.id.slice(0, 8)}. Our crew is scheduled to complete the repair.`;
+
+    // SMS to Customer
+    if (report.reporterPhone) {
+      smsResult = await sendSMS(report.reporterPhone, message);
+    }
+
+    // Email to Customer
+    if (report.reporterEmail && resendApiKey) {
+      try {
+        const resend = new Resend(resendApiKey);
+        emailResult = await resend.emails.send({
+          from: `Quick Fix <dispatch@quickfixpothole.com>`,
+          to: report.reporterEmail,
+          subject: `Payment Received: Ticket #${report.id.slice(0, 8)}`,
+          html: `
+            <div style="font-family: sans-serif; border: 10px solid #000; padding: 20px; background: #fff; max-width: 600px;">
+              <h1 style="text-transform: uppercase; font-size: 30px; margin: 0; background: #000; color: #fff; padding: 10px;">THANK YOU!</h1>
+              <div style="padding: 20px; border: 2px solid #000; margin-top: 10px;">
+                <p>Hello <strong>${report.reporterName || 'Customer'}</strong>,</p>
+                <p>We've received your payment and our dispatch team has confirmed your repair schedule.</p>
+                
+                <div style="background: #f0f0f0; border-left: 5px solid #00ff00; padding: 15px; margin: 15px 0;">
+                  <p style="margin: 0; font-size: 10px; opacity: 0.6; text-transform: uppercase;">Amount Paid:</p>
+                  <p style="margin: 0; font-size: 30px; font-weight: black;">$${report.price}</p>
+                  <p style="margin: 5px 0 0 0; font-size: 10px; opacity: 0.6; text-transform: uppercase;">Ticket Reference:</p>
+                  <p style="margin: 0; font-size: 14px; font-weight: bold;">#${report.id.slice(0, 8)}</p>
+                </div>
+
+                <p>Your repair is now prioritized. You will receive a notification as soon as our technician arrives on-site.</p>
+                
+                <div style="margin-top: 20px; border-top: 2px solid #000; pt: 10px;">
+                  <p style="font-size: 12px; font-weight: bold;">WHAT'S NEXT?</p>
+                  <ul style="font-size: 11px; padding-left: 20px;">
+                    <li>Crew dispatch to coordinates provided</li>
+                    <li>Professional asphalt filling & sealing</li>
+                    <li>Photo confirmation of completed work</li>
+                  </ul>
+                </div>
+
+                <p style="font-size: 10px; opacity: 0.6; margin-top: 20px;">If you have any questions, reply to this email or contact support.</p>
+              </div>
+            </div>
+          `
+        });
+      } catch (err: any) {
+        console.error("[PAYMENT-NOTIFY] Email error:", err.message);
+      }
+    }
+
+    res.json({ success: true, email: !!emailResult, sms: !!smsResult });
+  } catch (error: any) {
+    console.error("[PAYMENT-NOTIFY] Global Error:", error);
+    res.status(500).json({ error: "Internal error" });
+  }
+});
+
 // Vercel Entry Point
 export default app;
 
