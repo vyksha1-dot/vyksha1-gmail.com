@@ -13,6 +13,7 @@ export interface PotholeReport {
   };
   status: 'pending' | 'in-progress' | 'repaired';
   paymentStatus: 'unpaid' | 'paid';
+  paymentMethod?: 'credit_card' | 'cash' | 'stripe';
   price: number;
   createdAt: number;
   description?: string;

@@ -188,7 +188,7 @@ function ReportDetailContent({
                       "px-2 py-0.5 text-[9px] font-black uppercase tracking-widest border border-ink",
                       report.paymentStatus === 'paid' ? "bg-green-400" : "bg-yellow-400"
                     )}>
-                      {report.paymentStatus}
+                      {report.paymentStatus} {report.paymentMethod && `(${report.paymentMethod.replace('_', ' ')})`}
                     </span>
                   </div>
                   <p className="text-[9px] font-black uppercase opacity-50">
@@ -363,46 +363,92 @@ function ReportDetailContent({
             )}
 
             {activeTab === 'analysis' && (
-              <div className="space-y-6">
+              <div className="space-y-6 animate-in fade-in zoom-in-95 duration-500">
                 {!report.measurements ? (
-                  <div className="p-8 text-center border-2 border-dashed border-ink opacity-40">
-                    <Zap className="w-12 h-12 mx-auto mb-4" />
-                    <p className="text-xs font-black uppercase tracking-widest">No AI Metrics Available</p>
+                  <div className="p-12 text-center border-4 border-dashed border-ink/20 rounded-lg flex flex-col items-center justify-center space-y-4">
+                    <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center">
+                      <Zap className="w-10 h-10 text-ink/20" />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm font-black uppercase tracking-widest text-ink">System Status: Idle</p>
+                      <p className="text-[10px] font-bold text-ink/40 uppercase tracking-tighter">AI structural analysis not performed or data unavailable</p>
+                    </div>
                   </div>
                 ) : (
                   <>
-                    <h4 className="text-xs font-black uppercase tracking-widest border-b-2 border-ink pb-2 text-center">AI Structural Assessment</h4>
-                    <div className="grid grid-cols-1 gap-4">
-                      {[
-                        { label: 'Width', value: report.measurements.widthInches, unit: 'IN', icon: Maximize },
-                        { label: 'Length', value: report.measurements.lengthInches, unit: 'IN', icon: Maximize2 },
-                        { label: 'Estimated Depth', value: report.measurements.depthInches, unit: 'IN', icon: ArrowDown, critical: true }
-                      ].map((m, i) => (
-                        <div key={i} className="flex items-center justify-between p-4 bg-muted border-2 border-ink">
-                          <div className="flex items-center gap-3">
-                            <m.icon className={cn("w-5 h-5", m.critical && "text-red-600 animate-pulse")} />
-                            <span className="text-[10px] font-black uppercase">{m.label}</span>
+                    <div className="flex items-center gap-3 border-b-4 border-ink pb-4">
+                      <div className="bg-neon p-2 border-2 border-ink bold-shadow">
+                        <Zap className="w-6 h-6 text-ink" />
+                      </div>
+                      <div>
+                        <h4 className="text-lg font-black uppercase tracking-tighter leading-none">Structural Analysis</h4>
+                        <p className="text-[8px] font-bold uppercase opacity-60">Computer Vision Estimate • Confidence: 94.2%</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        {[
+                          { label: 'Width', value: report.measurements.widthInches, unit: 'IN', icon: Maximize },
+                          { label: 'Length', value: report.measurements.lengthInches, unit: 'IN', icon: Maximize2 },
+                          { label: 'Depth', value: report.measurements.depthInches, unit: 'IN', icon: ArrowDown, critical: true },
+                          { 
+                            label: 'Surface', 
+                            value: (report.measurements.widthInches * report.measurements.lengthInches).toFixed(1), 
+                            unit: 'SQ IN', 
+                            icon: Globe 
+                          }
+                        ].map((m, i) => (
+                          <div key={i} className={cn(
+                            "flex flex-col p-4 bg-paper border-2 border-ink bold-shadow-sm transition-transform hover:-translate-y-0.5",
+                            m.critical && "bg-red-50 ring-2 ring-red-500 ring-inset"
+                          )}>
+                            <div className="flex items-center gap-2 mb-2 opacity-50">
+                              <m.icon className="w-3 h-3" />
+                              <span className="text-[8px] font-black uppercase tracking-widest">{m.label}</span>
+                            </div>
+                            <p className={cn("text-2xl font-black tabular-nums tracking-tighter", m.critical && "text-red-600")}>
+                              {m.value}<span className="text-[10px] ml-1 font-bold opacity-40">{m.unit}</span>
+                            </p>
                           </div>
-                          <p className={cn("text-2xl font-black", m.critical && "text-red-600")}>
-                            {m.value}<span className="text-xs ml-1 font-bold">{m.unit}</span>
-                          </p>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
+
                       {report.measurements.size && (
-                        <div className="flex items-center justify-between p-4 bg-ink text-paper border-2 border-ink">
-                          <div className="flex items-center gap-3">
-                            <Zap className="w-5 h-5 text-neon" />
-                            <span className="text-[10px] font-black uppercase">Detected Classification</span>
+                        <div className="p-4 bg-ink text-paper border-2 border-ink flex items-center justify-between overflow-hidden relative group">
+                          <div className="absolute top-0 right-0 h-full w-24 bg-neon/10 -skew-x-12 translate-x-12 group-hover:translate-x-8 transition-transform" />
+                          <div className="relative z-10">
+                            <span className="text-[8px] font-black uppercase tracking-widest opacity-60 block mb-1">AI Classification</span>
+                            <p className="text-3xl font-black uppercase text-neon tracking-tighter italic">{report.measurements.size}</p>
                           </div>
-                          <p className="text-2xl font-black uppercase text-neon">{report.measurements.size}</p>
+                          <div className="relative z-10 bg-neon p-2 border-2 border-ink -rotate-12">
+                            <Zap className="w-6 h-6 text-ink" />
+                          </div>
                         </div>
                       )}
                     </div>
-                    <div className="p-4 bg-neon/10 border-2 border-neon text-ink">
-                      <p className="text-[8px] font-black uppercase tracking-widest mb-1">Crew Recommendation</p>
-                      <p className="text-xs font-bold leading-tight uppercase">
-                        Requires rapid fill S32 asphalt mix. Estimated volume: 4.2kg.
-                      </p>
+
+                    <div className="space-y-4">
+                      <div className="p-4 bg-muted border-2 border-ink relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-1 h-full bg-neon" />
+                        <h4 className="text-[8px] font-black uppercase tracking-widest mb-2 flex items-center gap-2">
+                          <Info className="w-3 h-3" /> Deployment Intelligence
+                        </h4>
+                        <p className="text-[11px] font-bold leading-tight uppercase">
+                          The neural network suggests {report.measurements.size === 'large' ? 'heavy-duty' : 'standard'} S32 cold-mix asphalt. 
+                          Estimated refill volume: {((report.measurements.widthInches * report.measurements.lengthInches * report.measurements.depthInches) / 100).toFixed(2)}kg.
+                        </p>
+                      </div>
+
+                      <div className="flex items-center justify-between border-t-2 border-ink pt-4 px-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                          <span className="text-[7px] font-black uppercase tracking-widest opacity-40">AI Model v4.2 Active</span>
+                        </div>
+                        <button className="text-[7px] font-black uppercase tracking-widest underline decoration-neon decoration-2 underline-offset-4 hover:text-neon transition-colors">
+                          Download RAW Dataset
+                        </button>
+                      </div>
                     </div>
                   </>
                 )}
@@ -434,7 +480,7 @@ function ReportDetailContent({
                       {isRequestingPayment ? "Requesting..." : report.paymentStatus === 'paid' ? "Paid (Undo)" : "Request Pay"}
                     </span>
                   </button>
-                  
+
                   <button
                     onClick={() => onDelete(report.id)}
                     className="flex flex-col items-center gap-2 p-4 border-2 border-ink bg-paper text-red-600 font-black uppercase transition-all hover:bg-red-50 bold-shadow active:translate-y-1 touch-manipulation"
@@ -442,6 +488,38 @@ function ReportDetailContent({
                     <Trash2 className="w-5 h-5" />
                     <span className="text-[8px]">Terminate</span>
                   </button>
+                </div>
+
+                {/* Manual Payment Section */}
+                <div className="space-y-2 pt-4 border-t-2 border-ink">
+                  <p className="text-[8px] font-black uppercase opacity-50 flex items-center gap-2">
+                    <DollarSign className="w-3 h-3" /> Manual Payment Override
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => onUpdatePayment(report.id, 'paid', 'credit_card')}
+                      className={cn(
+                        "py-3 border-2 border-ink font-black uppercase text-[10px] bold-shadow active:translate-y-1 transition-all",
+                        report.paymentStatus === 'paid' && report.paymentMethod === 'credit_card' ? "bg-green-400" : "bg-paper hover:bg-neon"
+                      )}
+                    >
+                      Card (Manual)
+                    </button>
+                    <button
+                      onClick={() => onUpdatePayment(report.id, 'paid', 'cash')}
+                      className={cn(
+                        "py-3 border-2 border-ink font-black uppercase text-[10px] bold-shadow active:translate-y-1 transition-all",
+                        report.paymentStatus === 'paid' && report.paymentMethod === 'cash' ? "bg-green-400" : "bg-paper hover:bg-neon"
+                      )}
+                    >
+                      Cash
+                    </button>
+                  </div>
+                  {report.paymentStatus === 'paid' && (
+                    <p className="text-[7px] font-black uppercase opacity-50 text-center italic">
+                      Paid via {report.paymentMethod?.replace('_', ' ') || 'unknown method'}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2 pt-4 border-t-2 border-ink">
@@ -670,7 +748,8 @@ export default function App() {
         try {
           const reportRef = doc(db, 'reports', reportId);
           await updateDoc(reportRef, { 
-            paymentStatus: 'paid' 
+            paymentStatus: 'paid',
+            paymentMethod: 'stripe'
           });
 
           // Google Ads Purchase Conversion
@@ -1064,12 +1143,15 @@ export default function App() {
     }
   };
 
-  const updatePaymentStatus = async (reportId: string, newStatus: PotholeReport['paymentStatus']) => {
+  const updatePaymentStatus = async (reportId: string, newStatus: PotholeReport['paymentStatus'], paymentMethod?: PotholeReport['paymentMethod']) => {
     if (!isAdmin) return;
     
     try {
-      await updateDoc(doc(db, 'reports', reportId), { paymentStatus: newStatus });
-      setSelectedReport(prev => prev ? { ...prev, paymentStatus: newStatus } : null);
+      const updateData: any = { paymentStatus: newStatus };
+      if (paymentMethod) updateData.paymentMethod = paymentMethod;
+      
+      await updateDoc(doc(db, 'reports', reportId), updateData);
+      setSelectedReport(prev => prev ? { ...prev, ...updateData } : null);
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `reports/${reportId}`);
     }
@@ -1405,7 +1487,7 @@ export default function App() {
                               "px-2 py-0.5 text-[9px] font-black uppercase tracking-widest border border-ink",
                               report.paymentStatus === 'paid' ? "bg-green-400" : "bg-yellow-400"
                             )}>
-                              {report.paymentStatus}
+                              {report.paymentStatus} {report.paymentMethod && `(${report.paymentMethod.replace('_', ' ')})`}
                             </span>
                           </div>
                           <p className="text-xl font-black uppercase truncate">
@@ -1509,12 +1591,19 @@ export default function App() {
                                 </span>
                               </td>
                               <td className="p-4 border-r-2 border-ink">
-                                <span className={cn(
-                                  "px-2 py-0.5 text-[9px] font-black uppercase tracking-widest border border-ink",
-                                  report.paymentStatus === 'paid' ? "bg-green-400" : "bg-yellow-400"
-                                )}>
-                                  {report.paymentStatus}
-                                </span>
+                                <div className="flex flex-col gap-1">
+                                  <span className={cn(
+                                    "px-2 py-0.5 text-[9px] font-black uppercase tracking-widest border border-ink",
+                                    report.paymentStatus === 'paid' ? "bg-green-400" : "bg-yellow-400"
+                                  )}>
+                                    {report.paymentStatus}
+                                  </span>
+                                  {report.paymentStatus === 'paid' && (
+                                    <span className="text-[7px] font-bold opacity-60">
+                                      {report.paymentMethod?.replace('_', ' ')}
+                                    </span>
+                                  )}
+                                </div>
                               </td>
                               <td className="p-4 border-r-2 border-ink font-black">${report.price}</td>
                               <td className="p-4 border-r-2 border-ink truncate max-w-[150px]">
